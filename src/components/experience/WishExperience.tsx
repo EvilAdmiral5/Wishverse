@@ -90,7 +90,7 @@ const stageVariants = {
     y: 0,
     transition: {
       duration: 0.7,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
     },
   },
   exit: {
@@ -99,7 +99,7 @@ const stageVariants = {
     y: -20,
     transition: {
       duration: 0.45,
-      ease: [0.4, 0, 1, 1],
+      ease: [0.4, 0, 1, 1] as [number, number, number, number],
     },
   },
 };
@@ -177,7 +177,7 @@ function WishVerseIntro({
       }}
       transition={{
         duration: 0.85,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
       }}
       className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden text-white"
       style={{ backgroundColor: theme.background }}
@@ -211,7 +211,7 @@ function WishVerseIntro({
           }}
           transition={{
             duration: 1.1,
-            ease: [0.22, 1, 0.36, 1],
+            ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
           }}
           className="text-center"
         >
@@ -488,7 +488,7 @@ function StageOnePullHeart({
         }
         transition={
           heartPulled
-            ? { duration: 0.42, ease: [0.4, 0, 1, 1] }
+            ? { duration: 0.42, ease: [0.4, 0, 1, 1] as [number, number, number, number] }
             : isReturning
               ? { type: "spring", stiffness: 420, damping: 24, mass: 0.65 }
               : isDragging
@@ -567,7 +567,7 @@ function StageOnePullHeart({
                 scale: [0.2, 1.4, 2.15, 2.8],
                 rotate: [-12, 8, -4, 0],
               }}
-              transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[76px] sm:text-[110px]"
               style={{
                 color: theme.secondary,
@@ -581,7 +581,7 @@ function StageOnePullHeart({
             <motion.div
               initial={{ opacity: 0.75, scale: 0.2 }}
               animate={{ opacity: 0, scale: 4.5 }}
-              transition={{ duration: 1.15, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.15, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
               className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
               style={{ borderColor: `${theme.accent}99` }}
             />
@@ -613,7 +613,7 @@ function StageOnePullHeart({
                   transition={{
                     duration: 1.45 + (index % 6) * 0.12,
                     delay: (index % 9) * 0.025,
-                    ease: [0.16, 1, 0.3, 1],
+                    ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                   }}
                   className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-serif leading-none"
                   style={{
@@ -683,7 +683,7 @@ export default function WishExperience({
   const [cakeLit, setCakeLit] = useState(false);
   const [cakeBlown, setCakeBlown] = useState(false);
   const [isBlowing, setIsBlowing] = useState(false);
-  const blowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blowTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   const [activeNote, setActiveNote] = useState<number | null>(
     null
@@ -1147,7 +1147,7 @@ export default function WishExperience({
             }}
             transition={{
               duration: 0.5,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
             }}
             className="h-full rounded-full"
             style={{
@@ -1289,7 +1289,7 @@ export default function WishExperience({
                       initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
                       animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
                       exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-                      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                       className="pointer-events-none fixed inset-0 z-[210] bg-black/20"
                     />
 
@@ -1311,7 +1311,7 @@ export default function WishExperience({
                       transition={{
                         delay: 0.34,
                         duration: 1.05,
-                        ease: [0.16, 1, 0.3, 1],
+                        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                       }}
                       className="fixed inset-0 z-[230] flex min-h-screen items-center justify-center px-5 py-8 text-center sm:px-8"
                     >
@@ -1322,7 +1322,7 @@ export default function WishExperience({
                           transition={{
                             delay: 0.52,
                             duration: 0.7,
-                            ease: [0.16, 1, 0.3, 1],
+                            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                           }}
                           className="mb-4 text-4xl sm:mb-5 sm:text-6xl"
                           style={{
@@ -1339,7 +1339,7 @@ export default function WishExperience({
                           transition={{
                             delay: 0.48,
                             duration: 0.8,
-                            ease: [0.16, 1, 0.3, 1],
+                            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                           }}
                           className="max-w-[95vw] text-4xl font-light leading-[1.08] tracking-[-0.03em] sm:text-6xl md:text-7xl lg:text-8xl"
                           style={{
@@ -1376,7 +1376,7 @@ export default function WishExperience({
                           transition={{
                             delay: 1.02,
                             duration: 0.7,
-                            ease: [0.16, 1, 0.3, 1],
+                            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                           }}
                           className="mt-8 min-h-12 rounded-full border px-7 py-3 text-sm font-medium transition duration-300 hover:scale-[1.04] active:scale-[0.97] sm:mt-9 sm:px-9 sm:py-3.5"
                           style={{
@@ -1473,7 +1473,7 @@ export default function WishExperience({
               <motion.div
                 initial={{ opacity: 0, y: 12, letterSpacing: "0.65em" }}
                 animate={{ opacity: 1, y: 0, letterSpacing: "0.42em" }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 className="text-[9px] uppercase"
                 style={{ color: `${theme.accent}99` }}
               >
@@ -1484,7 +1484,7 @@ export default function WishExperience({
               <motion.h2
                 initial={{ opacity: 0, y: 28, filter: "blur(8px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ delay: 0.18, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.18, duration: 0.9, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 className="mt-5 text-4xl font-light leading-[1.05] tracking-tight sm:text-6xl"
               >
                 {occasionGreeting},
@@ -1500,7 +1500,7 @@ export default function WishExperience({
               <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.5, duration: 0.85, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 className="relative mx-auto mt-10 max-w-2xl"
               >
                 <div
@@ -1668,7 +1668,7 @@ export default function WishExperience({
               <motion.div
                 initial={{ opacity: 0, y: 15, letterSpacing: "0.7em" }}
                 animate={{ opacity: 1, y: 0, letterSpacing: "0.5em" }}
-                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 className="text-[9px] uppercase"
                 style={{ color: `${theme.accent}aa` }}
               >
@@ -1729,7 +1729,7 @@ export default function WishExperience({
                 transition={{
                   delay: 0.35,
                   duration: 1,
-                  ease: [0.16, 1, 0.3, 1],
+                  ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
                 }}
                 className="relative mx-auto mt-8 h-[340px] w-[350px] origin-top scale-[0.82] sm:mt-10 sm:h-[365px] sm:w-[440px] sm:scale-100"
               >
@@ -1888,7 +1888,7 @@ export default function WishExperience({
                       transition={{
                         delay: 0.55 + candle * 0.06,
                         duration: 0.5,
-                        ease: [0.22, 1, 0.36, 1],
+                        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                       }}
                       className="relative h-[62px] w-[13px] overflow-visible rounded-t-full rounded-b-md border"
                       style={{
@@ -2007,7 +2007,7 @@ export default function WishExperience({
                       <motion.div
                         initial={{ opacity: 0, x: 0, y: 125, scale: 0.35 }}
                         animate={{ opacity: [0, 0.32, 0.16, 0], x: 0, y: 35, scale: [0.35, 0.9, 1.18, 1.35] }}
-                        transition={{ duration: 0.82, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.82, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
                         className="absolute left-1/2 top-[175px] h-28 w-64 -translate-x-1/2 rounded-[50%] blur-2xl"
                         style={{ background: `radial-gradient(ellipse, ${theme.accent}38 0%, ${theme.secondary}18 45%, transparent 72%)` }}
                       />
@@ -2028,7 +2028,7 @@ export default function WishExperience({
                             strokeLinecap="round"
                             initial={{ pathLength: 0, opacity: 0 }}
                             animate={{ pathLength: [0, 1, 1], opacity: [0, 0.9, 0] }}
-                            transition={{ duration: 0.72, delay: line * 0.035, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: 0.72, delay: line * 0.035, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
                           />
                         ))}
                       </svg>
@@ -2305,7 +2305,7 @@ export default function WishExperience({
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
               className="relative z-10 mb-10 sm:mb-12"
             >
               <div
@@ -2382,7 +2382,7 @@ export default function WishExperience({
                       transition={{
                         delay: 0.12 + index * 0.1,
                         duration: 0.72,
-                        ease: [0.22, 1, 0.36, 1],
+                        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                       }}
                       className={`group relative mx-auto h-[300px] w-full max-w-[330px] text-left outline-none focus-visible:ring-2 focus-visible:ring-offset-4 ${
                         royalNotes.length === 3 && index === 2
@@ -2505,7 +2505,7 @@ export default function WishExperience({
                               exit={{ opacity: 0, scale: 0.94, y: 8 }}
                               transition={{
                                 duration: 0.35,
-                                ease: [0.22, 1, 0.36, 1],
+                                ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                               }}
                               className="absolute inset-3 z-30 flex flex-col justify-center overflow-hidden rounded-[20px] border p-6 text-left sm:inset-4 sm:p-8"
                               style={{
@@ -2820,7 +2820,7 @@ export default function WishExperience({
                         }}
                         transition={{
                           duration: 0.62,
-                          ease: [0.22, 1, 0.36, 1],
+                          ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                         }}
                         className="w-full"
                       >
@@ -3216,7 +3216,7 @@ export default function WishExperience({
                     }}
                     transition={{
                       duration: 0.9,
-                      ease: [0.22, 1, 0.36, 1],
+                      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                     }}
                     whileHover={{
                       y: -7,
@@ -3322,7 +3322,7 @@ export default function WishExperience({
                     }}
                     transition={{
                       duration: 1.05,
-                      ease: [0.22, 1, 0.36, 1],
+                      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
                     }}
                     className="mx-auto w-[min(650px,94vw)]"
                   >
@@ -3574,7 +3574,7 @@ export default function WishExperience({
               <motion.div
                 initial={{ opacity: 0, scale: 0.65, rotate: -8 }}
                 animate={{ opacity: 1, scale: [0.65, 1.08, 1], rotate: 0 }}
-                transition={{ delay: 0.18, duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.18, duration: 0.95, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
                 className="mx-auto mt-10 flex h-24 w-24 items-center justify-center rounded-full border"
                 style={{
                   borderColor: `${theme.accent}45`,
