@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #090909;
+  --foreground: #ffffff;
+  --wv-page-bg: #090909;
+  --wv-page-bg-soft: #100d0f;
+  --wv-page-text: #ffffff;
+  --wv-page-muted: rgba(255, 255, 255, 0.45);
+  --wv-page-border: rgba(255, 255, 255, 0.08);
+  --wv-page-glow: rgba(181, 107, 120, 0.10);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 10%, var(--wv-page-glow), transparent 30%),
+    var(--wv-page-bg);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+
+::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--wv-page-bg); }
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 105, 110, 0.45);
+  border-radius: 999px;
+}
+
+.wv-page-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 8%, var(--wv-page-glow), transparent 32%),
+    radial-gradient(circle at 88% 85%, var(--wv-page-glow), transparent 30%),
+    var(--wv-page-bg);
+  color: var(--wv-page-text);
+}
+
+.wv-home-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 20%, var(--wv-page-glow), transparent 38%),
+    var(--wv-page-bg);
+  color: var(--wv-page-text);
+}
