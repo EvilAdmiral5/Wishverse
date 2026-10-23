@@ -281,8 +281,8 @@ export default function WishForm() {
         <div className="mt-7">
           <p className="text-sm text-white/50">Recipient gender</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <Choice active={gender === "boy"} onClick={() => setGender("boy")}>🧸 <span><strong className="block">Male</strong><small className="text-white/35">Bubu</small></span></Choice>
-            <Choice active={gender === "girl"} onClick={() => setGender("girl")}>🤎 <span><strong className="block">Female</strong><small className="text-white/35">Dudu</small></span></Choice>
+            <Choice active={gender === "boy"} onClick={() => setGender("boy")}>🧸 <span><strong className="block">Male</strong><small className="text-white/35"></small></span></Choice>
+            <Choice active={gender === "girl"} onClick={() => setGender("girl")}>🤎 <span><strong className="block">Female</strong><small className="text-white/35"></small></span></Choice>
           </div>
         </div>
       </FormCard>
