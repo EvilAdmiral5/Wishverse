@@ -276,7 +276,7 @@ export default function WishForm() {
       <FormCard number="01" title="Who is this for?" subtitle="Start with the two people at the heart of this WishVerse.">
         <div className="grid gap-5 sm:grid-cols-2">
           <Input label="Recipient name" placeholder="e.g. Ananya" value={recipientName} onChange={setRecipientName} />
-          <Input label="Your name" placeholder="e.g. Gagan" value={creatorName} onChange={setCreatorName} />
+          <Input label="Your name" placeholder="e.g. Kevin" value={creatorName} onChange={setCreatorName} />
         </div>
         <div className="mt-7">
           <p className="text-sm text-white/50">Recipient gender</p>
