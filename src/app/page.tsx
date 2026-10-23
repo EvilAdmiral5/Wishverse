@@ -2,50 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useMotionValue, useSpring } from "framer-motion";
-
-const occasions = [
-  {
-    label: "Birthday",
-    symbol: "✦",
-    tone: "#C8A24A",
-    mood: "Velvet Celebration",
-    description: "Warm, elegant and a little dramatic — made for the birthday that deserves more than a text.",
-    palette: ["#6A0C1F", "#B56B78", "#C8A24A", "#0F0D0E"],
-  },
-  {
-    label: "Romantic",
-    symbol: "♡",
-    tone: "#F2B5C5",
-    mood: "Rose Noir",
-    description: "Soft romance with a darker, intimate edge — made for feelings that deserve their own little world.",
-    palette: ["#7A1735", "#D05A7A", "#F2B5C5", "#12090D"],
-  },
-  {
-    label: "Best Friend",
-    symbol: "∞",
-    tone: "#F3C677",
-    mood: "Sunset Bloom",
-    description: "Golden, playful and full of warmth — for the person who somehow makes ordinary days better.",
-    palette: ["#A65335", "#E58B61", "#F3C677", "#15100D"],
-  },
-  {
-    label: "Anniversary",
-    symbol: "◌",
-    tone: "#D6A6B8",
-    mood: "Midnight Romance",
-    description: "Deep, elegant and timeless — a mood for memories, promises and everything in between.",
-    palette: ["#4A1026", "#9B4D68", "#D6A6B8", "#100A0D"],
-  },
-  {
-    label: "Just Because",
-    symbol: "✧",
-    tone: "#E8C7D8",
-    mood: "Soft Bloom",
-    description: "Gentle, dreamy and unexpectedly sweet — because some people deserve to be celebrated for no reason.",
-    palette: ["#6B3A5B", "#B982A4", "#E8C7D8", "#100B10"],
-  },
-];
+import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
+import TextType from "./TextType";
+import useCanvasCursor from "@/hooks/useCanvasCursor";
 
 const steps = [
   ["01", "Make it personal", "Add their name, your words, memories and little details."],
@@ -54,15 +13,20 @@ const steps = [
 ];
 
 export default function WishVerseHomepage() {
-  const [activeOccasion, setActiveOccasion] = useState("Birthday");
-  const [vibeOpen, setVibeOpen] = useState(true);
   const [entered, setEntered] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
+  const canvasCursorRef = useCanvasCursor();
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const smoothX = useSpring(mouseX, { stiffness: 80, damping: 20 });
   const smoothY = useSpring(mouseY, { stiffness: 80, damping: 20 });
+
+  useEffect(() => {
+    const introTimer = window.setTimeout(() => setShowIntro(false), 2800);
+    return () => window.clearTimeout(introTimer);
+  }, []);
 
   useEffect(() => {
     const onMove = (event: MouseEvent) => {
@@ -79,10 +43,58 @@ export default function WishVerseHomepage() {
   };
 
   return (
-    <main
+    <>
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            key="wishverse-intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.75, ease: "easeInOut" }}
+            className="fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-[#070609]/95 backdrop-blur-xl"
+            aria-label="WishVerse intro"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, filter: "blur(10px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 1.02, filter: "blur(8px)" }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="relative px-8 text-center text-4xl font-medium tracking-[-0.05em] text-white sm:text-6xl md:text-7xl"
+            >
+              <div className="pointer-events-none absolute inset-1/2 -z-10 h-40 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8C7D8]/10 blur-3xl sm:h-52 sm:w-96" />
+              <TextType
+                text={["Wishverse"]}
+                typingSpeed={75}
+                pauseDuration={1500}
+                deletingSpeed={50}
+                deleteMode="backspace"
+                typeEffect="none"
+                mistakes={0}
+                cursorStyle="underscore"
+                cursorGlide
+                showCursor
+                cursorColor="currentColor"
+                prefixColor="currentColor"
+                cursorBlinkDuration={0.5}
+                cursorCharacter="_"
+                prefix=""
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main
       ref={heroRef}
       className="min-h-screen overflow-x-hidden bg-[#070609] text-white selection:bg-[#E8C7D8]/20"
     >
+      <canvas
+        ref={canvasCursorRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[90] hidden h-full w-full md:block"
+      />
+
       <motion.div
         aria-hidden
         className="pointer-events-none fixed z-0 hidden h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl md:block"
@@ -165,7 +177,7 @@ export default function WishVerseHomepage() {
                 href="/create"
                 onMouseEnter={() => setEntered(true)}
                 onMouseLeave={() => setEntered(false)}
-                className="group relative inline-flex min-h-14 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-white px-7 text-sm font-semibold text-black shadow-[0_18px_70px_rgba(232,199,216,.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_90px_rgba(232,199,216,.2)]"
+                className="wv-primary-cta group relative inline-flex min-h-14 items-center justify-center overflow-visible rounded-2xl border border-white/15 bg-white px-7 text-sm font-semibold text-black shadow-[0_18px_70px_rgba(232,199,216,.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_90px_rgba(232,199,216,.2)]"
               >
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/[0.08] to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 <span className="relative">Create something they&apos;ll remember</span>
@@ -215,7 +227,7 @@ export default function WishVerseHomepage() {
 
                 <div>
                   <div className="mb-4 flex items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/25">
-                    <span>{activeOccasion}</span><span>Keep going →</span>
+                    <span>WishVerse</span><span>Keep going →</span>
                   </div>
                   <div className="h-1 overflow-hidden rounded-full bg-white/[0.07]">
                     <motion.div animate={{ width: "28%" }} className="h-full rounded-full bg-[#E8C7D8]" />
@@ -252,123 +264,6 @@ export default function WishVerseHomepage() {
         >
           <span className="h-8 w-px bg-white/20" /> Scroll to explore
         </button>
-      </section>
-
-      <section className="relative z-10 border-y border-white/[0.06] bg-white/[0.018] py-7 sm:py-8">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="shrink-0">
-              <button
-                type="button"
-                onClick={() => setVibeOpen((open) => !open)}
-                className="group flex items-center gap-2 text-left"
-              >
-                <span className="text-[9px] uppercase tracking-[.3em] text-white/25">Pick your vibe</span>
-                <span className="grid h-5 w-5 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-[10px] text-white/45 transition group-hover:border-white/20 group-hover:text-white">
-                  {vibeOpen ? "−" : "+"}
-                </span>
-              </button>
-              <p className="mt-1 text-[11px] text-white/25">Tap a mood and preview the world they&apos;ll open.</p>
-            </div>
-
-            <div className="flex items-center gap-3 overflow-x-auto [scrollbar-width:none]">
-              {occasions.map((occasion) => (
-                <button
-                  key={occasion.label}
-                  onClick={() => {
-                    setActiveOccasion(occasion.label);
-                    setVibeOpen(true);
-                  }}
-                  className={`group flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-[11px] transition ${
-                    activeOccasion === occasion.label
-                      ? "border-white/15 bg-white/[0.08] text-white shadow-[0_10px_35px_rgba(0,0,0,.18)]"
-                      : "border-white/[0.06] bg-white/[0.02] text-white/35 hover:border-white/10 hover:text-white/70"
-                  }`}
-                >
-                  <span style={{ color: occasion.tone }}>{occasion.symbol}</span>
-                  {occasion.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <motion.div
-            initial={false}
-            animate={{ height: vibeOpen ? "auto" : 0, opacity: vibeOpen ? 1 : 0, marginTop: vibeOpen ? 20 : 0 }}
-            className="overflow-hidden"
-          >
-            {(() => {
-              const selected = occasions.find((item) => item.label === activeOccasion) ?? occasions[0];
-              return (
-                <motion.div
-                  key={selected.label}
-                  initial={{ opacity: 0, y: 10, scale: .985 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: .35, ease: "easeOut" }}
-                  className="relative overflow-hidden rounded-[1.75rem] border border-white/[0.09] bg-black/30 p-5 shadow-[0_25px_80px_rgba(0,0,0,.22)] backdrop-blur-2xl sm:p-6"
-                >
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-70"
-                    style={{
-                      background: `radial-gradient(circle at 15% 20%, ${selected.palette[1]}22, transparent 30%), radial-gradient(circle at 85% 80%, ${selected.palette[2]}18, transparent 32%)`,
-                    }}
-                  />
-
-                  <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-                    <div>
-                      <div className="flex items-center gap-2 text-[9px] uppercase tracking-[.3em] text-white/30">
-                        <span style={{ color: selected.tone }}>{selected.symbol}</span>
-                        {selected.label} mood
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
-                        <h3 className="text-2xl font-medium tracking-[-.04em] sm:text-3xl">{selected.mood}</h3>
-                        <span className="pb-1 text-[10px] uppercase tracking-[.2em] text-white/25">Theme preview</span>
-                      </div>
-                      <p className="mt-3 max-w-2xl text-xs leading-6 text-white/40 sm:text-sm">
-                        {selected.description}
-                      </p>
-
-                      <div className="mt-5 flex flex-wrap items-center gap-2">
-                        {selected.palette.map((color, index) => (
-                          <span key={color} className="group relative">
-                            <span
-                              className="block h-7 w-7 rounded-full border border-white/15 shadow-[0_5px_20px_rgba(0,0,0,.25)]"
-                              style={{ backgroundColor: color }}
-                            />
-                            <span className="pointer-events-none absolute left-1/2 top-9 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/80 px-2 py-1 text-[8px] text-white/50 opacity-0 transition group-hover:opacity-100">
-                              {index === 0 ? "Primary" : index === 1 ? "Secondary" : index === 2 ? "Accent" : "Background"}
-                            </span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div
-                      className="relative min-h-32 overflow-hidden rounded-2xl border border-white/10 p-4 md:w-56"
-                      style={{
-                        background: `linear-gradient(145deg, ${selected.palette[0]}, ${selected.palette[3]})`,
-                      }}
-                    >
-                      <div
-                        className="absolute -right-8 -top-8 h-28 w-28 rounded-full blur-2xl"
-                        style={{ backgroundColor: selected.palette[2], opacity: .32 }}
-                      />
-                      <div className="relative flex h-full min-h-24 flex-col justify-between">
-                        <div className="flex items-center justify-between text-[8px] uppercase tracking-[.25em] text-white/45">
-                          <span>WishVerse</span><span>01 / 07</span>
-                        </div>
-                        <div>
-                          <div className="text-[9px] uppercase tracking-[.25em]" style={{ color: selected.palette[2] }}>A little world for</div>
-                          <div className="mt-1 text-lg font-light text-white/90">Someone special.</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })()}
-          </motion.div>
-        </div>
       </section>
 
       <section id="how-it-works" className="relative z-10 mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
@@ -414,7 +309,7 @@ export default function WishVerseHomepage() {
             </div>
             <Link
               href="/create"
-              className="group inline-flex min-h-14 shrink-0 items-center justify-center rounded-2xl bg-white px-7 text-sm font-semibold text-black transition hover:-translate-y-1 hover:shadow-[0_20px_70px_rgba(232,199,216,.18)]"
+              className="wv-primary-cta group inline-flex min-h-14 shrink-0 items-center justify-center rounded-2xl bg-white px-7 text-sm font-semibold text-black transition hover:-translate-y-1 hover:shadow-[0_20px_70px_rgba(232,199,216,.18)]"
             >
               Start your WishVerse <span className="ml-3 transition group-hover:translate-x-1">→</span>
             </Link>
@@ -426,6 +321,79 @@ export default function WishVerseHomepage() {
         <span>WishVerse · made for meaningful moments</span>
         <span>Not another boring wish link.</span>
       </footer>
+
+      <style jsx>{`
+        .wv-primary-cta {
+          --wv-cta-edge: #E8C7D8;
+          --wv-cta-glow: rgba(232, 199, 216, 0.34);
+          --wv-cta-cutout: #070609;
+          position: relative;
+          isolation: isolate;
+          overflow: visible !important;
+          border-color: var(--wv-cta-edge);
+          box-shadow:
+            0 0 0 1px rgba(232, 199, 216, 0.08),
+            0 16px 55px rgba(232, 199, 216, 0.10);
+          transition:
+            transform .35s cubic-bezier(.22,1,.36,1),
+            border-color .35s ease,
+            box-shadow .5s ease;
+        }
+
+        .wv-primary-cta::after,
+        .wv-primary-cta::before {
+          content: "";
+          position: absolute;
+          left: 3%;
+          width: 94%;
+          height: 38%;
+          background: var(--wv-cta-cutout);
+          pointer-events: none;
+          z-index: 0;
+          transition: transform .5s cubic-bezier(.22,1,.36,1);
+        }
+
+        .wv-primary-cta::after {
+          top: -10px;
+          transform-origin: center;
+        }
+
+        .wv-primary-cta::before {
+          bottom: -10px;
+          transform-origin: center;
+        }
+
+        .wv-primary-cta:hover::before,
+        .wv-primary-cta:hover::after {
+          transform: scale(0);
+        }
+
+        .wv-primary-cta:hover {
+          border-color: #F7E6EE;
+          box-shadow:
+            inset 0 0 25px var(--wv-cta-glow),
+            0 0 38px rgba(232, 199, 216, 0.14);
+        }
+
+        .wv-primary-cta > * {
+          position: relative;
+          z-index: 1;
+        }
+
+        .wv-primary-cta:focus-visible {
+          outline: 2px solid var(--wv-cta-edge);
+          outline-offset: 4px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .wv-primary-cta,
+          .wv-primary-cta::before,
+          .wv-primary-cta::after {
+            transition: none;
+          }
+        }
+      `}</style>
     </main>
+    </>
   );
 }
