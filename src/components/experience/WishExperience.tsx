@@ -60,6 +60,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import { cakes } from "@/data/cakes";
+import { songs } from "@/data/songs";
 import { characters } from "@/data/characters";
 import type { Wish } from "@/types/wish";
 import CharacterKiss from "./CharacterKiss";
@@ -128,39 +129,23 @@ function WishVerseIntro({
   useEffect(() => {
     const duration = 2400;
     const start = performance.now();
+    let progressTimer: ReturnType<typeof setInterval> | null = null;
+    let completeTimer: ReturnType<typeof setTimeout> | null = null;
 
-    let frameId: number;
-    let completeTimer: ReturnType<typeof setTimeout>;
-
-    const animate = (time: number) => {
-      const elapsed = time - start;
+    progressTimer = window.setInterval(() => {
+      const elapsed = performance.now() - start;
       const linearProgress = Math.min(elapsed / duration, 1);
-
-      // Smooth cinematic easing.
-      const easedProgress =
-        1 - Math.pow(1 - linearProgress, 3);
-
-      const nextProgress = Math.min(
-        Math.round(easedProgress * 100),
-        100
-      );
-
-      setProgress(nextProgress);
-
-      if (linearProgress < 1) {
-        frameId = requestAnimationFrame(animate);
-      } else {
-        completeTimer = setTimeout(() => {
-          onComplete();
-        }, 650);
+      const easedProgress = 1 - Math.pow(1 - linearProgress, 3);
+      setProgress(Math.min(Math.round(easedProgress * 100), 100));
+      if (linearProgress >= 1) {
+        if (progressTimer) window.clearInterval(progressTimer);
+        completeTimer = window.setTimeout(onComplete, 650);
       }
-    };
-
-    frameId = requestAnimationFrame(animate);
+    }, 50);
 
     return () => {
-      cancelAnimationFrame(frameId);
-      clearTimeout(completeTimer);
+      if (progressTimer) window.clearInterval(progressTimer);
+      if (completeTimer) window.clearTimeout(completeTimer);
     };
   }, [onComplete]);
 
@@ -230,7 +215,7 @@ function WishVerseIntro({
               delay: 0.7,
               duration: 1,
             }}
-            className="mt-4 text-[10px] uppercase tracking-[0.35em] text-white/35"
+            className="mt-4 text-[12px] uppercase tracking-[0.35em] text-white/35"
           >
             Preparing something special
           </motion.p>
@@ -263,7 +248,7 @@ function WishVerseIntro({
             </motion.div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/35">
+          <div className="mt-3 flex items-center justify-between text-[12px] uppercase tracking-[0.25em] text-white/35">
             <span>
               {progress < 100
                 ? "Loading experience"
@@ -310,6 +295,14 @@ function StageOnePullHeart({
   const [isDragging, setIsDragging] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
   const [burstKey, setBurstKey] = useState(0);
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
+
+  useEffect(() => {
+    const updateViewport = () => setIsCompactViewport(window.innerWidth < 640);
+    updateViewport();
+    window.addEventListener("resize", updateViewport, { passive: true });
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   const maxPull = 190;
   const threshold = maxPull * 0.8;
@@ -446,7 +439,7 @@ function StageOnePullHeart({
             className="absolute left-1/2 top-[58px] -translate-x-1/2 whitespace-nowrap"
           >
             <p
-              className="text-[10px] uppercase tracking-[0.38em]"
+              className="text-[12px] uppercase tracking-[0.38em]"
               style={{ color: `${theme.accent}${isDragging ? "cc" : "70"}` }}
             >
               {isDragging
@@ -543,7 +536,7 @@ function StageOnePullHeart({
               }}
             />
           </div>
-          <p className="mt-2 text-[8px] uppercase tracking-[0.3em] text-white/20">
+          <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-white/20">
             {isDragging ? `${Math.round(pullRatio * 100)}% tension` : "Hold and pull"}
           </p>
         </div>
@@ -587,8 +580,8 @@ function StageOnePullHeart({
             />
 
             {/* Many hearts across the entire viewport */}
-            {Array.from({ length: 150 }).map((_, index) => {
-              const angle = (index / 150) * Math.PI * 2 + (index % 13) * 0.11;
+            {Array.from({ length: isCompactViewport ? 72 : 150 }).map((_, index) => {
+              const angle = (index / (isCompactViewport ? 72 : 150)) * Math.PI * 2 + (index % 13) * 0.11;
               const xDistance = 18 + (index % 8) * 4;
               const yDistance = 18 + ((index * 3) % 8) * 4;
               const size = 13 + (index % 5) * 5;
@@ -633,7 +626,7 @@ function StageOnePullHeart({
             })}
 
             {/* Extra drifting hearts so the burst fills the screen instead of stopping near the center */}
-            {Array.from({ length: 70 }).map((_, index) => (
+            {Array.from({ length: isCompactViewport ? 28 : 70 }).map((_, index) => (
               <motion.span
                 key={`${burstKey}-drift-${index}`}
                 initial={{
@@ -808,16 +801,35 @@ export default function WishExperience({
 
   const memories = wish.memories ?? [];
   const royalNotes = wish.royal_notes ?? [];
+  const selectedSong = songs.find((song) => song.id === wish.song) ?? songs[0];
+  const [isCompactViewport, setIsCompactViewport] = useState(false);
 
-  // Warm the browser cache before the recipient reaches Stage 6 so the
-  // first memory is ready immediately instead of waiting for the image request.
   useEffect(() => {
-    memories.forEach((memory) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = memory.imageUrl;
-    });
+    const updateViewport = () => setIsCompactViewport(window.innerWidth < 640);
+    updateViewport();
+    window.addEventListener("resize", updateViewport, { passive: true });
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  // Warm only the first memory before Stage 6. Loading every full-size image
+  // up front was unnecessarily expensive on mobile connections.
+  useEffect(() => {
+    const firstMemory = memories[0];
+    if (!firstMemory) return;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = firstMemory.imageUrl;
   }, [memories]);
+
+  useEffect(() => {
+    if (stage !== 6) return;
+    const nextMemoryIndex = memories.length > 1 ? (memoryIndex + 1) % memories.length : memoryIndex;
+    const nextMemory = memories[nextMemoryIndex];
+    if (!nextMemory) return;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = nextMemory.imageUrl;
+  }, [stage, memoryIndex, memories]);
 
   useEffect(() => {
     return () => {
@@ -830,39 +842,42 @@ export default function WishExperience({
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (isPlaying) {
-      audio.play().catch(() => {
-        // Browser autoplay policy may reject playback until a user gesture.
-      });
-    } else {
-      audio.pause();
+    audio.loop = true;
+    audio.volume = 0.42;
+    audio.load();
+    if (isPlaying && selectedSong?.src) {
+      void audio.play().catch(() => {});
     }
-  }, [isPlaying]);
+  }, [selectedSong?.src, isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.loop = true;
-    audio.volume = 0.42;
-
-    return () => {
+    if (!isPlaying || !selectedSong?.src) {
       audio.pause();
-      audio.currentTime = 0;
-    };
+      if (!selectedSong?.src) audio.currentTime = 0;
+    }
+  }, [isPlaying, selectedSong?.src]);
+
+  useEffect(() => () => {
+    const audio = audioRef.current;
+    audio?.pause();
+    if (audio) audio.currentTime = 0;
   }, []);
 
   useEffect(() => {
     if (stage !== 6 || memories.length <= 1) return;
 
-    const timer = window.setInterval(() => {
+    // Use a timeout instead of a fixed interval so every memory change
+    // starts a completely fresh 6-second countdown.
+    const timer = window.setTimeout(() => {
       setMemoryIndex((current) =>
         current >= memories.length - 1 ? 0 : current + 1
       );
     }, 6000);
 
-    return () => window.clearInterval(timer);
-  }, [stage, memories.length]);
+    return () => window.clearTimeout(timer);
+  }, [stage, memoryIndex, memories.length]);
 
   /* ===================================================== */
   /* INTRO */
@@ -965,6 +980,13 @@ export default function WishExperience({
   /* MEMORIES */
   /* ===================================================== */
 
+  const goToMemory = (index: number) => {
+    if (memories.length === 0) return;
+
+    const nextIndex = Math.max(0, Math.min(index, memories.length - 1));
+    setMemoryIndex(nextIndex);
+  };
+
   const nextMemory = () => {
     if (memories.length === 0) return;
 
@@ -1046,8 +1068,9 @@ export default function WishExperience({
     >
       <audio
         ref={audioRef}
-        src="/sounds/wishverse.mp3"
+        src={selectedSong?.src || undefined}
         preload="auto"
+        playsInline
         aria-hidden="true"
       />
 
@@ -1092,32 +1115,30 @@ export default function WishExperience({
 
           {/* Logo */}
           <div className="absolute left-1/2 -translate-x-1/2">
-            <span className="text-[9px] font-medium uppercase tracking-[0.45em] text-white/30">
+            <span className="text-[11px] font-medium uppercase tracking-[0.45em] text-white/30">
               WishVerse
             </span>
           </div>
 
           {/* Music / stage */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {selectedSong?.name && (
+              <span
+                className="max-w-[120px] truncate text-[11px] font-medium uppercase tracking-[0.18em] text-white/45 sm:max-w-[180px] sm:tracking-[0.25em]"
+                title={selectedSong.name}
+              >
+                {selectedSong.name}
+              </span>
+            )}
+
             <button
               type="button"
               onClick={() => {
-                setIsPlaying((playing) => {
-                  const next = !playing;
-                  const audio = audioRef.current;
-                  if (audio) {
-                    if (next) {
-                      audio.play().catch(() => {});
-                    } else {
-                      audio.pause();
-                      audio.currentTime = 0;
-                    }
-                  }
-                  return next;
-                });
+                if (!selectedSong?.src) return;
+                setIsPlaying((playing) => !playing);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/40 backdrop-blur-md transition hover:border-white/20 hover:text-white"
-              aria-label="Toggle music"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/40 backdrop-blur-md transition hover:border-white/20 hover:text-white"
+              aria-label={selectedSong?.name ? `Toggle ${selectedSong.name}` : "Toggle music"}
             >
               <Music2
                 size={14}
@@ -1127,7 +1148,7 @@ export default function WishExperience({
               />
             </button>
 
-            <span className="hidden text-[9px] uppercase tracking-[0.25em] text-white/25 sm:block">
+            <span className="hidden text-[11px] uppercase tracking-[0.25em] text-white/25 sm:block">
               {stage} / 08
             </span>
           </div>
@@ -1205,7 +1226,7 @@ export default function WishExperience({
                 style={{ backgroundColor: theme.secondary }}
               />
 
-              {Array.from({ length: 28 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 14 : 28 }).map((_, index) => (
                 <motion.span
                   key={index}
                   initial={{
@@ -1235,7 +1256,7 @@ export default function WishExperience({
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="mb-4 text-[10px] uppercase tracking-[0.5em]"
+                className="mb-4 text-[12px] uppercase tracking-[0.5em]"
                 style={{ color: `${theme.accent}99` }}
               >
                 Something special awaits
@@ -1271,11 +1292,7 @@ export default function WishExperience({
                 heartPulled={heartPulled}
                 onPulled={() => {
                 setHeartPulled(true);
-                setIsPlaying(true);
-                const audio = audioRef.current;
-                if (audio) {
-                  audio.play().catch(() => {});
-                }
+                if (selectedSong?.src) setIsPlaying(true);
               }}
               />
 
@@ -1394,7 +1411,7 @@ export default function WishExperience({
               </AnimatePresence>
             </div>
 
-            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               An experience by WishVerse
             </p>
           </motion.section>
@@ -1436,7 +1453,7 @@ export default function WishExperience({
                 style={{ backgroundColor: theme.secondary }}
               />
 
-              {Array.from({ length: 30 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 14 : 30 }).map((_, index) => (
                 <motion.span
                   key={index}
                   initial={{
@@ -1473,7 +1490,7 @@ export default function WishExperience({
                 initial={{ opacity: 0, y: 12, letterSpacing: "0.65em" }}
                 animate={{ opacity: 1, y: 0, letterSpacing: "0.42em" }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
-                className="text-[9px] uppercase"
+                className="text-[11px] uppercase"
                 style={{ color: `${theme.accent}99` }}
               >
                 A message from {wish.creator_name}
@@ -1555,7 +1572,7 @@ export default function WishExperience({
                   />
 
                   <p
-                    className="mt-5 text-[9px] uppercase tracking-[0.35em]"
+                    className="mt-5 text-[11px] uppercase tracking-[0.35em]"
                     style={{ color: `${theme.secondary}88` }}
                   >
                     Made especially for you
@@ -1572,7 +1589,7 @@ export default function WishExperience({
                 onClick={nextStage}
                 whileHover={{ scale: 1.035, y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                className="wv-primary-cta relative z-20 mt-9 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
+                className="relative z-20 mt-9 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
                 style={{
                   borderColor: `${theme.accent}40`,
                   backgroundColor: `${theme.accent}0d`,
@@ -1585,7 +1602,7 @@ export default function WishExperience({
               </motion.button>
             </div>
 
-            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               A moment written just for you · WishVerse
             </p>
           </motion.section>
@@ -1632,7 +1649,7 @@ export default function WishExperience({
                 style={{ backgroundColor: `${theme.primary}55` }}
               />
 
-              {Array.from({ length: 34 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 16 : 34 }).map((_, index) => (
                 <motion.span
                   key={`cake-particle-${index}`}
                   initial={{
@@ -1668,7 +1685,7 @@ export default function WishExperience({
                 initial={{ opacity: 0, y: 15, letterSpacing: "0.7em" }}
                 animate={{ opacity: 1, y: 0, letterSpacing: "0.5em" }}
                 transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
-                className="text-[9px] uppercase"
+                className="text-[11px] uppercase"
                 style={{ color: `${theme.accent}aa` }}
               >
                 A little celebration
@@ -1787,7 +1804,7 @@ export default function WishExperience({
 
                   {/* pearl border */}
                   <div className="absolute inset-x-5 top-[33px] flex justify-between">
-                    {Array.from({ length: 9 }).map((_, index) => (
+                    {Array.from({ length: isCompactViewport ? 5 : 9 }).map((_, index) => (
                       <span
                         key={`lower-pearl-${index}`}
                         className="h-2 w-2 rounded-full"
@@ -2097,7 +2114,7 @@ export default function WishExperience({
                       whileHover={{ scale: 1.045, y: -2 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={lightCake}
-                      className="wv-primary-cta rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
+                      className="rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
                       style={{
                         borderColor: `${theme.accent}50`,
                         backgroundColor: `${theme.accent}12`,
@@ -2122,7 +2139,7 @@ export default function WishExperience({
                       whileTap={{ scale: 0.96 }}
                       onClick={blowCake}
                       disabled={isBlowing}
-                      className="wv-primary-cta rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
+                      className="rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
                       style={{
                         borderColor: `${theme.secondary}60`,
                         backgroundColor: `${theme.secondary}12`,
@@ -2170,7 +2187,7 @@ export default function WishExperience({
                         Wish made. May it come true. ✨
                       </p>
 
-                      <p className="mt-1 text-[9px] uppercase tracking-[0.28em] text-white/25">
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.28em] text-white/25">
                         The celebration continues
                       </p>
 
@@ -2179,7 +2196,7 @@ export default function WishExperience({
                         onClick={nextStage}
                         whileHover={{ scale: 1.035, y: -1 }}
                         whileTap={{ scale: 0.97 }}
-                        className="wv-primary-cta mt-5 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
+                        className="mt-5 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
                         style={{
                           borderColor: `${theme.accent}40`,
                           backgroundColor: `${theme.accent}10`,
@@ -2194,7 +2211,7 @@ export default function WishExperience({
               </div>
             </div>
 
-            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               Make a wish · WishVerse
             </p>
           </motion.section>
@@ -2238,7 +2255,7 @@ export default function WishExperience({
               />
 
               {/* Fine floating dust */}
-              {Array.from({ length: 28 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 14 : 28 }).map((_, index) => (
                 <motion.span
                   key={`note-dust-${index}`}
                   initial={{
@@ -2268,7 +2285,7 @@ export default function WishExperience({
               ))}
 
               {/* Slow drifting petals */}
-              {Array.from({ length: 9 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 5 : 9 }).map((_, index) => (
                 <motion.span
                   key={`note-petal-${index}`}
                   initial={{
@@ -2308,7 +2325,7 @@ export default function WishExperience({
               className="relative z-10 mb-10 sm:mb-12"
             >
               <div
-                className="mb-4 flex items-center justify-center gap-3 text-[9px] uppercase tracking-[0.5em]"
+                className="mb-4 flex items-center justify-center gap-3 text-[11px] uppercase tracking-[0.5em]"
                 style={{ color: `${theme.accent}a0` }}
               >
                 <span
@@ -2464,7 +2481,7 @@ export default function WishExperience({
                         {/* Note number */}
                         <div className="absolute left-0 right-0 top-[132px] text-center">
                           <span
-                            className="text-[9px] uppercase tracking-[0.42em]"
+                            className="text-[11px] uppercase tracking-[0.42em]"
                             style={{ color: `${theme.accent}95` }}
                           >
                             Note {String(index + 1).padStart(2, "0")}
@@ -2482,7 +2499,7 @@ export default function WishExperience({
                             style={{ backgroundColor: `${theme.accent}30` }}
                           />
                           <span
-                            className="text-[8px] uppercase tracking-[0.3em]"
+                            className="text-[10px] uppercase tracking-[0.3em]"
                             style={{ color: `${theme.secondary}75` }}
                           >
                             With love
@@ -2521,7 +2538,7 @@ export default function WishExperience({
                                   style={{ color: theme.accent }}
                                 />
                                 <span
-                                  className="text-[10px] uppercase tracking-[0.3em]"
+                                  className="text-[12px] uppercase tracking-[0.3em]"
                                   style={{ color: `${theme.accent}a0` }}
                                 >
                                   For {wish.recipient_name}
@@ -2541,11 +2558,11 @@ export default function WishExperience({
                               </p>
 
                               <div className="mt-6 flex items-center justify-between gap-4">
-                                <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">
+                                <span className="text-[12px] uppercase tracking-[0.25em] text-white/30">
                                   Note {String(index + 1).padStart(2, "0")}
                                 </span>
                                 <span
-                                  className="text-[10px] uppercase tracking-[0.2em]"
+                                  className="text-[12px] uppercase tracking-[0.2em]"
                                   style={{ color: `${theme.accent}75` }}
                                 >
                                   Tap to close
@@ -2607,7 +2624,7 @@ export default function WishExperience({
                   ))}
                 </div>
 
-                <p className="mt-3 text-[9px] uppercase tracking-[0.32em] text-white/25">
+                <p className="mt-3 text-[11px] uppercase tracking-[0.32em] text-white/25">
                   {activeNote !== null
                     ? `Note ${activeNote + 1} of ${royalNotes.length}`
                     : "Choose a sealed note"}
@@ -2628,7 +2645,7 @@ export default function WishExperience({
                   onClick={nextStage}
                   whileHover={{ scale: 1.035, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="wv-primary-cta relative z-10 mt-8 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
+                  className="relative z-10 mt-8 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
                   style={{
                     borderColor: `${theme.accent}40`,
                     backgroundColor: `${theme.accent}10`,
@@ -2642,7 +2659,7 @@ export default function WishExperience({
               )}
             </AnimatePresence>
 
-            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               A little love, sealed in words · WishVerse
             </p>
           </motion.section>
@@ -2679,7 +2696,7 @@ export default function WishExperience({
               onComplete={nextStage}
             />
 
-            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               A little love, delivered · WishVerse
             </p>
           </motion.section>
@@ -2728,7 +2745,7 @@ export default function WishExperience({
                 style={{ backgroundColor: theme.secondary }}
               />
 
-              {Array.from({ length: 30 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 14 : 30 }).map((_, index) => (
                 <motion.span
                   key={index}
                   initial={{
@@ -2761,7 +2778,7 @@ export default function WishExperience({
                 className="mx-auto max-w-2xl text-center"
               >
                 <div
-                  className="mb-4 text-[10px] uppercase tracking-[0.48em]"
+                  className="mb-4 text-[12px] uppercase tracking-[0.48em]"
                   style={{ color: `${theme.accent}99` }}
                 >
                   Little pieces of time
@@ -2792,7 +2809,7 @@ export default function WishExperience({
                         onClick={previousMemory}
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        className="absolute left-0 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/60 backdrop-blur-xl transition hover:border-white/20 hover:text-white sm:flex"
+                        className="wv-memory-button absolute left-0 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/60 backdrop-blur-xl transition hover:border-white/20 hover:text-white sm:flex"
                         aria-label="Previous memory"
                       >
                         <ChevronLeft size={18} />
@@ -2853,7 +2870,7 @@ export default function WishExperience({
                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-black/10" />
 
                             <div
-                              className="absolute left-5 top-5 rounded-full border px-3 py-1.5 text-[9px] uppercase tracking-[0.24em] backdrop-blur-xl"
+                              className="absolute left-5 top-5 rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-[0.24em] backdrop-blur-xl"
                               style={{
                                 borderColor: `${theme.accent}30`,
                                 backgroundColor: `${theme.background}85`,
@@ -2870,7 +2887,7 @@ export default function WishExperience({
                                   size={13}
                                   style={{ color: theme.accent }}
                                 />
-                                <span className="text-[9px] uppercase tracking-[0.32em] text-white/35">
+                                <span className="text-[11px] uppercase tracking-[0.32em] text-white/35">
                                   A moment worth keeping
                                 </span>
                               </div>
@@ -2893,7 +2910,7 @@ export default function WishExperience({
                           </div>
 
                           <div className="flex items-center justify-between px-3 pb-2 pt-4 sm:px-5">
-                            <span className="text-[9px] uppercase tracking-[0.3em] text-white/20">
+                            <span className="text-[11px] uppercase tracking-[0.3em] text-white/20">
                               Kept forever · WishVerse
                             </span>
 
@@ -2914,7 +2931,7 @@ export default function WishExperience({
                         onClick={nextMemory}
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        className="absolute right-0 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/60 backdrop-blur-xl transition hover:border-white/20 hover:text-white sm:flex"
+                        className="wv-memory-button absolute right-0 z-30 hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/60 backdrop-blur-xl transition hover:border-white/20 hover:text-white sm:flex"
                         aria-label="Next memory"
                       >
                         <ChevronRight size={18} />
@@ -2942,10 +2959,10 @@ export default function WishExperience({
                       </div>
 
                       <div className="mt-2 flex items-center justify-between px-1">
-                        <span className="text-[8px] uppercase tracking-[0.28em] text-white/20">
+                        <span className="text-[10px] uppercase tracking-[0.28em] text-white/20">
                           Auto slideshow
                         </span>
-                        <span className="text-[8px] uppercase tracking-[0.22em] text-white/20">
+                        <span className="text-[10px] uppercase tracking-[0.22em] text-white/20">
                           Next memory in 6s
                         </span>
                       </div>
@@ -2959,9 +2976,9 @@ export default function WishExperience({
                           <button
                             key={memory.id}
                             type="button"
-                            onClick={() => setMemoryIndex(index)}
+                            onClick={() => goToMemory(index)}
                             aria-label={`Open memory ${index + 1}`}
-                            className="group relative h-16 w-20 shrink-0 overflow-hidden rounded-xl border transition sm:h-20 sm:w-28"
+                            className="wv-memory-button group relative h-16 w-20 shrink-0 overflow-hidden rounded-xl border transition sm:h-20 sm:w-28"
                             style={{
                               borderColor:
                                 memoryIndex === index
@@ -2980,7 +2997,7 @@ export default function WishExperience({
                               className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                             />
                             <span className="absolute inset-0 bg-black/20" />
-                            <span className="absolute bottom-1.5 left-2 text-[8px] uppercase tracking-[0.15em] text-white/75">
+                            <span className="absolute bottom-1.5 left-2 text-[10px] uppercase tracking-[0.15em] text-white/75">
                               {String(index + 1).padStart(2, "0")}
                             </span>
                           </button>
@@ -2994,17 +3011,17 @@ export default function WishExperience({
                       <button
                         type="button"
                         onClick={previousMemory}
-                        className="rounded-full border border-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-white/50"
+                        className="wv-memory-button rounded-full border border-white/10 px-4 py-2 text-[12px] uppercase tracking-[0.18em] text-white/50"
                       >
                         Previous
                       </button>
-                      <span className="text-[10px] text-white/25">
+                      <span className="text-[12px] text-white/25">
                         {memoryIndex + 1} / {memories.length}
                       </span>
                       <button
                         type="button"
                         onClick={nextMemory}
-                        className="rounded-full border border-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-white/50"
+                        className="wv-memory-button rounded-full border border-white/10 px-4 py-2 text-[12px] uppercase tracking-[0.18em] text-white/50"
                       >
                         Next
                       </button>
@@ -3035,7 +3052,7 @@ export default function WishExperience({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="mt-8 text-[9px] uppercase tracking-[0.35em] text-white/20"
+                  className="mt-8 text-[11px] uppercase tracking-[0.35em] text-white/20"
                 >
                   {memories.length === 1
                     ? "One memory, kept forever"
@@ -3048,7 +3065,7 @@ export default function WishExperience({
                 onClick={nextStage}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="wv-primary-cta mx-auto mt-9 flex items-center gap-2 rounded-full border px-6 py-3 text-xs uppercase tracking-[0.18em] transition"
+                className="mx-auto mt-9 flex items-center gap-2 rounded-full border px-6 py-3 text-xs uppercase tracking-[0.18em] transition"
                 style={{
                   borderColor: `${theme.accent}35`,
                   backgroundColor: `${theme.accent}0c`,
@@ -3059,7 +3076,7 @@ export default function WishExperience({
               </motion.button>
             </div>
 
-            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               Memories become stories · WishVerse
             </p>
           </motion.section>
@@ -3144,7 +3161,7 @@ export default function WishExperience({
                   className="relative z-10 mb-9"
                 >
                   <div
-                    className="mb-4 text-[10px] uppercase tracking-[0.48em]"
+                    className="mb-4 text-[12px] uppercase tracking-[0.48em]"
                     style={{ color: `${theme.accent}99` }}
                   >
                     One final thing
@@ -3173,7 +3190,7 @@ export default function WishExperience({
                   className="relative z-10 mb-7"
                 >
                   <div
-                    className="text-[9px] uppercase tracking-[0.45em]"
+                    className="text-[11px] uppercase tracking-[0.45em]"
                     style={{ color: `${theme.accent}88` }}
                   >
                     The final page
@@ -3294,12 +3311,12 @@ export default function WishExperience({
 
                     <div className="absolute bottom-7 left-0 right-0 text-center">
                       <p
-                        className="text-[9px] uppercase tracking-[0.42em]"
+                        className="text-[11px] uppercase tracking-[0.42em]"
                         style={{ color: `${theme.accent}88` }}
                       >
                         Open the sealed letter
                       </p>
-                      <p className="mt-2 text-[10px] text-white/25">
+                      <p className="mt-2 text-[12px] text-white/25">
                         Tap gently
                       </p>
                     </div>
@@ -3379,14 +3396,14 @@ export default function WishExperience({
                         >
                           <div className="flex items-center justify-between gap-4">
                             <p
-                              className="text-[9px] uppercase tracking-[0.42em]"
+                              className="text-[11px] uppercase tracking-[0.42em]"
                               style={{ color: `${theme.primary}70` }}
                             >
                               A secret letter
                             </p>
 
                             <span
-                              className="text-[9px] uppercase tracking-[0.28em]"
+                              className="text-[11px] uppercase tracking-[0.28em]"
                               style={{ color: `${theme.primary}45` }}
                             >
                               WishVerse · 07
@@ -3465,7 +3482,7 @@ export default function WishExperience({
                             }}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="mt-8 inline-flex items-center justify-center rounded-full border px-6 py-3 text-[10px] uppercase tracking-[0.28em]"
+                            className="mt-8 inline-flex items-center justify-center rounded-full border px-6 py-3 text-[12px] uppercase tracking-[0.28em]"
                             style={{
                               borderColor: `${theme.primary}28`,
                               backgroundColor: `${theme.primary}08`,
@@ -3504,7 +3521,7 @@ export default function WishExperience({
                     onClick={nextStage}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="wv-primary-cta mt-6 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm"
                     style={{
                       borderColor: `${theme.accent}38`,
                       backgroundColor: `${theme.accent}0c`,
@@ -3518,7 +3535,7 @@ export default function WishExperience({
               )}
             </AnimatePresence>
 
-            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               Made with love · WishVerse
             </p>
           </motion.section>
@@ -3547,7 +3564,7 @@ export default function WishExperience({
                 className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px]"
                 style={{ backgroundColor: theme.primary }}
               />
-              {Array.from({ length: 34 }).map((_, index) => (
+              {Array.from({ length: isCompactViewport ? 16 : 34 }).map((_, index) => (
                 <motion.span
                   key={`final-particle-${index}`}
                   initial={{ opacity: 0, y: "105vh", x: `${(index * 29) % 100}%` }}
@@ -3564,7 +3581,7 @@ export default function WishExperience({
                 initial={{ opacity: 0, y: 15, letterSpacing: "0.55em" }}
                 animate={{ opacity: 1, y: 0, letterSpacing: "0.35em" }}
                 transition={{ duration: 0.9 }}
-                className="text-[9px] uppercase"
+                className="text-[11px] uppercase"
                 style={{ color: `${theme.accent}99` }}
               >
                 The end of this little universe
@@ -3617,7 +3634,7 @@ export default function WishExperience({
                 onClick={restartExperience}
                 whileHover={{ scale: 1.035, y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                className="wv-primary-cta mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
+                className="mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
                 style={{
                   borderColor: `${theme.accent}45`,
                   backgroundColor: `${theme.accent}10`,
@@ -3630,7 +3647,7 @@ export default function WishExperience({
               </motion.button>
             </div>
 
-            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-[0.35em] text-white/20">
+            <p className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-white/20">
               Made with love · WishVerse · 08 / 08
             </p>
           </motion.section>
@@ -3663,94 +3680,228 @@ export default function WishExperience({
       {/* Theme name */}
       {!showIntro && (
         <div className="pointer-events-none fixed bottom-5 left-5 z-[80] hidden sm:block">
-          <span className="text-[8px] uppercase tracking-[0.3em] text-white/15">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-white/15">
             {theme.name}
           </span>
         </div>
       )}
-
-      <style jsx global>{`
-        .wv-primary-cta {
-          --wv-cta-edge: var(--wv-accent, #C8A24A);
-          --wv-cta-glow: color-mix(in srgb, var(--wv-accent, #C8A24A) 34%, transparent);
-          --wv-cta-cutout: var(--wish-background, #0F0D0E);
-          position: relative;
-          isolation: isolate;
-          overflow: visible !important;
-          border-color: var(--wv-cta-edge) !important;
-          box-shadow:
-            0 0 0 1px color-mix(in srgb, var(--wv-accent, #C8A24A) 8%, transparent),
-            0 15px 45px color-mix(in srgb, var(--wv-primary, #6A0C1F) 24%, transparent);
-          transition:
-            transform .35s cubic-bezier(.22,1,.36,1),
-            border-color .35s ease,
-            box-shadow .5s ease;
-        }
-
-        .wv-primary-cta::after,
-        .wv-primary-cta::before {
-          content: "";
-          position: absolute;
-          left: 3%;
-          width: 94%;
-          height: 38%;
-          background: var(--wv-cta-cutout);
-          pointer-events: none;
-          z-index: 0;
-          transition: transform .5s cubic-bezier(.22,1,.36,1);
-        }
-
-        .wv-primary-cta::after {
-          top: -10px;
-          transform-origin: center;
-        }
-
-        .wv-primary-cta::before {
-          bottom: -10px;
-          transform-origin: center;
-        }
-
-        .wv-primary-cta:hover::before,
-        .wv-primary-cta:hover::after {
-          transform: scale(0);
-        }
-
-        .wv-primary-cta:hover {
-          border-color: color-mix(in srgb, var(--wv-accent, #C8A24A) 86%, white) !important;
-          box-shadow:
-            inset 0 0 25px var(--wv-cta-glow),
-            0 0 38px color-mix(in srgb, var(--wv-accent, #C8A24A) 16%, transparent),
-            0 20px 55px color-mix(in srgb, var(--wv-primary, #6A0C1F) 34%, transparent);
-        }
-
-        .wv-primary-cta > * {
-          position: relative;
-          z-index: 1;
-        }
-
-        .wv-primary-cta:focus-visible {
-          outline: 2px solid var(--wv-cta-edge);
-          outline-offset: 4px;
-        }
-
-        .wv-primary-cta:disabled {
-          transform: none;
-          cursor: not-allowed;
-        }
-
-        .wv-primary-cta:disabled::before,
-        .wv-primary-cta:disabled::after {
-          display: none;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .wv-primary-cta,
-          .wv-primary-cta::before,
-          .wv-primary-cta::after {
-            transition: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }
+
+/* ===================================================== */
+/* WISHVERSE PREMIUM BUTTON SYSTEM */
+/* The supplied CTA treatment is translated into a */
+/* cinematic, mood-aware control language. */
+/* ===================================================== */
+
+<style jsx global>{`
+  .wv-button-surface {
+    --wv-primary: #6A0C1F;
+    --wv-secondary: #B56B78;
+    --wv-accent: #C8A24A;
+  }
+
+  .wv-button-surface button,
+  .wv-button-surface [role="button"] {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-color: color-mix(in srgb, var(--wv-accent) 28%, rgba(255,255,255,0.1));
+    box-shadow:
+      0 12px 34px color-mix(in srgb, var(--wv-primary) 20%, transparent),
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 0 -1px 0 rgba(0,0,0,0.18);
+    transition:
+      transform 260ms cubic-bezier(.22,1,.36,1),
+      border-color 260ms ease,
+      box-shadow 260ms ease,
+      background-color 260ms ease;
+  }
+
+  .wv-button-surface button::before,
+  .wv-button-surface [role="button"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--wv-primary) 92%, black),
+        color-mix(in srgb, var(--wv-secondary) 58%, var(--wv-primary)) 54%,
+        color-mix(in srgb, var(--wv-accent) 45%, var(--wv-secondary)));
+    opacity: 0.16;
+    transition: opacity 260ms ease;
+  }
+
+  .wv-button-surface button::after,
+  .wv-button-surface [role="button"]::after {
+    content: "";
+    position: absolute;
+    top: -80%;
+    left: -35%;
+    width: 38%;
+    height: 260%;
+    z-index: -1;
+    pointer-events: none;
+    transform: rotate(24deg) translateX(-260%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent);
+    transition: transform 720ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .wv-button-surface button:hover,
+  .wv-button-surface [role="button"]:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--wv-accent) 64%, rgba(255,255,255,0.2));
+    box-shadow:
+      0 18px 48px color-mix(in srgb, var(--wv-primary) 30%, transparent),
+      0 0 28px color-mix(in srgb, var(--wv-accent) 11%, transparent),
+      inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+
+  .wv-button-surface button:hover::before,
+  .wv-button-surface [role="button"]:hover::before {
+    opacity: 0.32;
+  }
+
+  .wv-button-surface button:hover::after,
+  .wv-button-surface [role="button"]:hover::after {
+    transform: rotate(24deg) translateX(610%);
+  }
+
+  .wv-button-surface button:active,
+  .wv-button-surface [role="button"]:active {
+    transform: translateY(0) scale(0.985);
+  }
+
+  .wv-button-surface button:focus-visible,
+  .wv-button-surface [role="button"]:focus-visible {
+    outline: 1px solid color-mix(in srgb, var(--wv-accent) 80%, white);
+    outline-offset: 3px;
+  }
+
+  .wv-button-surface button:disabled {
+    transform: none;
+    cursor: not-allowed;
+  }
+
+  .wv-button-surface button:disabled::after {
+    display: none;
+  }
+
+  /* Stage 6 memory controls — keep the same premium WishVerse sweep effect. */
+  .wv-button-surface .wv-memory-button {
+    isolation: isolate;
+    overflow: hidden;
+    transform: translateZ(0);
+    transition:
+      transform 260ms cubic-bezier(.22,1,.36,1),
+      border-color 260ms ease,
+      box-shadow 260ms ease,
+      background-color 260ms ease,
+      opacity 260ms ease;
+  }
+
+  .wv-button-surface .wv-memory-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--wv-primary) 92%, black), color-mix(in srgb, var(--wv-secondary) 58%, var(--wv-primary)) 54%, color-mix(in srgb, var(--wv-accent) 45%, var(--wv-secondary)));
+    opacity: 0.12;
+    transition: opacity 260ms ease;
+  }
+
+  .wv-button-surface .wv-memory-button::after {
+    content: "";
+    position: absolute;
+    top: -80%;
+    left: -35%;
+    width: 38%;
+    height: 260%;
+    z-index: -1;
+    pointer-events: none;
+    transform: rotate(24deg) translateX(-260%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.20), transparent);
+    transition: transform 720ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .wv-button-surface .wv-memory-button:hover {
+    transform: translateY(-2px) scale(1.025);
+    border-color: color-mix(in srgb, var(--wv-accent) 64%, rgba(255,255,255,.2));
+    box-shadow: 0 18px 48px color-mix(in srgb, var(--wv-primary) 30%, transparent), 0 0 28px color-mix(in srgb, var(--wv-accent) 11%, transparent), inset 0 1px 0 rgba(255,255,255,.16);
+  }
+
+  .wv-button-surface .wv-memory-button:hover::before {
+    opacity: 0.28;
+  }
+
+  .wv-button-surface .wv-memory-button:hover::after {
+    transform: rotate(24deg) translateX(610%);
+  }
+
+  .wv-button-surface .wv-memory-button:active {
+    transform: translateY(0) scale(.985);
+  }
+
+  .wv-button-surface .wv-memory-button:focus-visible {
+    outline: 1px solid color-mix(in srgb, var(--wv-accent) 80%, white);
+    outline-offset: 3px;
+  }
+
+  .wv-button-surface .wv-memory-button:disabled {
+    transform: none;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wv-button-surface .wv-memory-button,
+    .wv-button-surface .wv-memory-button::before,
+    .wv-button-surface .wv-memory-button::after {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 639px) {
+    /* Mobile readability: make supporting/instructional copy clearly readable. */
+    .wv-button-surface [class*="text-[10px]"] {
+      font-size: 10px !important;
+      color: rgba(255,255,255,0.62) !important;
+    }
+    .wv-button-surface [class*="text-[11px]"] {
+      font-size: 11px !important;
+      color: rgba(255,255,255,0.68) !important;
+    }
+    .wv-button-surface [class*="text-[12px]"] {
+      font-size: 12px !important;
+      color: rgba(255,255,255,0.72) !important;
+    }
+
+    .wv-button-surface [class*="text-white/20"],
+    .wv-button-surface [class*="text-white/25"],
+    .wv-button-surface [class*="text-white/30"],
+    .wv-button-surface [class*="text-white/35"],
+    .wv-button-surface [class*="text-white/40"],
+    .wv-button-surface [class*="text-white/45"] {
+      color: rgba(255,255,255,0.68) !important;
+    }
+
+    .wv-button-surface [class*="text-white/50"] {
+      color: rgba(255,255,255,0.78) !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wv-button-surface button,
+    .wv-button-surface [role="button"] {
+      transition: none;
+    }
+
+    .wv-button-surface button::after,
+    .wv-button-surface [role="button"]::after {
+      display: none;
+    }
+  }
+`}</style>

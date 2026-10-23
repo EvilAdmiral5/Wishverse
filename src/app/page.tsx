@@ -64,7 +64,7 @@ export default function WishVerseHomepage() {
             >
               <div className="pointer-events-none absolute inset-1/2 -z-10 h-40 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8C7D8]/10 blur-3xl sm:h-52 sm:w-96" />
               <TextType
-                text={["Wishverse"]}
+                text={["Welcome to Wishverse"]}
                 typingSpeed={75}
                 pauseDuration={1500}
                 deletingSpeed={50}
@@ -118,9 +118,15 @@ export default function WishVerseHomepage() {
           <span className="text-sm font-medium tracking-[-0.02em]">WishVerse</span>
         </Link>
 
-        <div className="hidden items-center gap-7 text-xs text-white/40 sm:flex">
-          <button onClick={scrollToHow} className="transition hover:text-white/80">How it works</button>
-          <Link href="/create" className="transition hover:text-white/80">Create</Link>
+        <div className="hidden items-center gap-7 text-sm text-white/65 sm:flex">
+          <button onClick={scrollToHow} className="transition hover:text-white">How it works</button>
+          <button
+            onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
+            className="transition hover:text-white"
+          >
+            About
+          </button>
+          <Link href="/create" className="transition hover:text-white">Create</Link>
         </div>
 
         <Link
@@ -138,7 +144,7 @@ export default function WishVerseHomepage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: .7 }}
-              className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.035] px-3.5 py-2 text-[9px] uppercase tracking-[0.3em] text-white/45 backdrop-blur-xl"
+              className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.035] px-3.5 py-2 text-[11px] uppercase tracking-[0.3em] text-white/45 backdrop-blur-xl"
             >
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E8C7D8] shadow-[0_0_14px_#E8C7D8]" />
               Digital wishes, but make them unforgettable
@@ -195,7 +201,7 @@ export default function WishVerseHomepage() {
               </button>
             </motion.div>
 
-            <div className="mt-8 flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white/25">
+            <div className="mt-8 flex items-center gap-3 text-[12px] uppercase tracking-[0.2em] text-white/25">
               <span>No app</span><span>·</span><span>No sign-up for them</span><span>·</span><span>One link</span>
             </div>
           </div>
@@ -208,7 +214,7 @@ export default function WishVerseHomepage() {
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgba(242,181,197,.15),transparent_32%),radial-gradient(circle_at_30%_80%,rgba(200,162,74,.08),transparent_30%)]" />
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[2rem] border border-white/[0.07] bg-[#0c0a0f]/90 p-6 sm:p-8">
-                <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.3em] text-white/30">
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/30">
                   <span>WishVerse</span><span>01 / 07</span>
                 </div>
 
@@ -220,13 +226,13 @@ export default function WishVerseHomepage() {
                   >
                     ♡
                   </motion.div>
-                  <p className="mt-8 text-[10px] uppercase tracking-[0.4em] text-[#E8C7D8]/60">A little something for</p>
+                  <p className="mt-8 text-[12px] uppercase tracking-[0.4em] text-[#E8C7D8]/60">A little something for</p>
                   <h2 className="mt-3 text-4xl font-light tracking-[-0.04em] sm:text-5xl">Someone special.</h2>
                   <p className="mx-auto mt-4 max-w-xs text-xs leading-6 text-white/30">A message can be read. A WishVerse can be experienced.</p>
                 </div>
 
                 <div>
-                  <div className="mb-4 flex items-center justify-between text-[9px] uppercase tracking-[0.25em] text-white/25">
+                  <div className="mb-4 flex items-center justify-between text-[11px] uppercase tracking-[0.25em] text-white/25">
                     <span>WishVerse</span><span>Keep going →</span>
                   </div>
                   <div className="h-1 overflow-hidden rounded-full bg-white/[0.07]">
@@ -242,7 +248,7 @@ export default function WishVerseHomepage() {
               transition={{ delay: .8 }}
               className="absolute -right-2 top-14 hidden w-44 rounded-2xl border border-white/10 bg-black/45 p-3 backdrop-blur-xl sm:block"
             >
-              <p className="text-[8px] uppercase tracking-[.25em] text-white/25">The vibe</p>
+              <p className="text-[10px] uppercase tracking-[.25em] text-white/25">The vibe</p>
               <p className="mt-2 text-xs text-white/65">Cinematic. Personal. A little addictive.</p>
             </motion.div>
 
@@ -252,7 +258,7 @@ export default function WishVerseHomepage() {
               transition={{ delay: 1 }}
               className="absolute -bottom-5 -left-3 hidden w-48 rounded-2xl border border-white/10 bg-black/45 p-3 backdrop-blur-xl sm:block"
             >
-              <p className="text-[8px] uppercase tracking-[.25em] text-white/25">Built for moments</p>
+              <p className="text-[10px] uppercase tracking-[.25em] text-white/25">Built for moments</p>
               <p className="mt-2 text-xs text-white/65">Birthdays · love · friendship · just because</p>
             </motion.div>
           </div>
@@ -260,7 +266,7 @@ export default function WishVerseHomepage() {
 
         <button
           onClick={scrollToHow}
-          className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center gap-3 text-[9px] uppercase tracking-[.35em] text-white/25 transition hover:text-white/60 sm:flex"
+          className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center gap-3 text-[11px] uppercase tracking-[.35em] text-white/25 transition hover:text-white/60 sm:flex"
         >
           <span className="h-8 w-px bg-white/20" /> Scroll to explore
         </button>
@@ -269,7 +275,7 @@ export default function WishVerseHomepage() {
       <section id="how-it-works" className="relative z-10 mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:px-10 lg:py-36">
         <div className="grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
           <div>
-            <p className="text-[9px] uppercase tracking-[.35em] text-white/25">The whole idea</p>
+            <p className="text-[11px] uppercase tracking-[.35em] text-white/25">The whole idea</p>
             <h2 className="mt-5 max-w-md text-4xl font-medium leading-[.95] tracking-[-.05em] sm:text-6xl">
               Less &ldquo;send a text.&rdquo;
               <br />
@@ -288,7 +294,7 @@ export default function WishVerseHomepage() {
                 whileHover={{ y: -6, rotateX: 2, rotateY: -2 }}
                 className="group rounded-3xl border border-white/[0.07] bg-white/[0.025] p-6 transition-shadow duration-300 hover:border-white/[0.13] hover:bg-white/[0.045] hover:shadow-[0_25px_80px_rgba(0,0,0,.25)]"
               >
-                <span className="text-[9px] tracking-[.3em] text-white/25">{number}</span>
+                <span className="text-[11px] tracking-[.3em] text-white/25">{number}</span>
                 <h3 className="mt-14 text-lg tracking-[-.02em]">{title}</h3>
                 <p className="mt-3 text-xs leading-6 text-white/35">{description}</p>
               </motion.div>
@@ -301,7 +307,7 @@ export default function WishVerseHomepage() {
         <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-8 shadow-[0_35px_100px_rgba(0,0,0,.25)] sm:p-12 lg:p-16">
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-[9px] uppercase tracking-[.35em] text-[#E8C7D8]/55">Your move</p>
+              <p className="text-[11px] uppercase tracking-[.35em] text-[#E8C7D8]/55">Your move</p>
               <h2 className="mt-4 max-w-2xl text-4xl font-medium leading-[.95] tracking-[-.05em] sm:text-6xl">
                 Someone you love is going to open this.
               </h2>
@@ -317,9 +323,76 @@ export default function WishVerseHomepage() {
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-[9px] uppercase tracking-[.25em] text-white/20 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-        <span>WishVerse · made for meaningful moments</span>
-        <span>Not another boring wish link.</span>
+      <section
+        id="about"
+        className="relative z-10 mx-auto max-w-7xl scroll-mt-24 px-5 pb-16 pt-10 sm:px-8 lg:px-10"
+      >
+        <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/[0.08] bg-white/[0.025] px-6 py-14 text-center shadow-[0_30px_100px_rgba(0,0,0,.22)] sm:px-10 sm:py-16">
+          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#E8C7D8]/90">
+            About WishVerse
+          </p>
+          <h2 className="mt-4 text-3xl font-medium tracking-[-0.04em] text-white sm:text-4xl">
+            Made for moments that deserve more.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+            WishVerse turns a simple message into a personal, interactive experience —
+            something they can open, feel, remember, and revisit.
+          </p>
+
+          </div>
+      </section>
+
+      <footer className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-5 pb-14 pt-6 text-center sm:px-8 lg:px-10">
+        <div className="w-full max-w-3xl rounded-[1.75rem] border border-[#E8C7D8]/15 bg-[#0c0a0f]/90 px-6 py-10 shadow-[0_25px_90px_rgba(0,0,0,.28)] backdrop-blur-xl sm:px-10 sm:py-12">
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#E8C7D8]/90">
+            A personalized wish experience
+          </p>
+
+          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.035em] text-white sm:text-3xl">
+            WishVerse
+          </h2>
+
+          <p className="mt-3 text-sm italic leading-6 text-[#F7E6EE]/85 sm:text-base">
+            Somewhere between a wish and a memory.
+          </p>
+
+          <div className="mx-auto mt-7 h-px w-44 bg-gradient-to-r from-transparent via-[#E8C7D8]/55 to-transparent" />
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <p className="text-sm font-medium tracking-[0.02em] text-[#F7E6EE]/95 sm:text-base">
+              crafted by <span className="text-white">Gagan</span> · EvilAdmiral
+            </p>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Gagan on Instagram"
+                className="group grid h-8 w-8 place-items-center rounded-full border border-[#E8C7D8]/20 bg-[#E8C7D8]/[0.045] text-[#F7E6EE]/80 shadow-[0_0_24px_rgba(232,199,216,.05)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-[#E8C7D8]/55 hover:bg-[#E8C7D8]/[0.10] hover:text-white hover:shadow-[0_0_28px_rgba(232,199,216,.16)]"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" />
+                  <circle cx="12" cy="12" r="4.15" />
+                  <circle cx="17.55" cy="6.55" r="0.9" fill="currentColor" stroke="none" />
+                </svg>
+              </a>
+
+              <a
+                href="https://wa.me/9625272672"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Gagan on WhatsApp"
+                className="group grid h-8 w-8 place-items-center rounded-full border border-[#E8C7D8]/20 bg-[#E8C7D8]/[0.045] text-[#F7E6EE]/80 shadow-[0_0_24px_rgba(232,199,216,.05)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-[#E8C7D8]/55 hover:bg-[#E8C7D8]/[0.10] hover:text-white hover:shadow-[0_0_28px_rgba(232,199,216,.16)]"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M20.2 11.5a8.2 8.2 0 0 1-12.3 7.1L4 20l1.4-3.6A8.2 8.2 0 1 1 20.2 11.5Z" />
+                  <path d="M9.1 8.1c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.3.1.5-.1.7l-.5.6c.5 1 1.3 1.8 2.3 2.3l.6-.5c.2-.2.4-.2.7-.1l1.6.7c.3.1.4.3.4.5v.5c0 .3 0 .5-.4.7-.5.3-1.1.5-1.7.4-1.3-.2-2.8-1-4-2.2-1.2-1.2-2-2.7-2.2-4-.1-.6.1-1.2.4-1.7Z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
       </footer>
 
       <style jsx>{`

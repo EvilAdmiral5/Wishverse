@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cakes } from "@/data/cakes";
+import { songs, type WishSongId } from "@/data/songs";
 import type { RecipientGender, WishTheme, CakeType, Memory } from "@/types/wish";
 
 type Occasion = "birthday" | "anniversary";
@@ -78,11 +79,12 @@ const SECRET_NOTE_SUGGESTIONS: Record<Occasion, string[]> = {
 const STAGES = [
   { title: "Who is it for?", short: "Basics", emoji: "01" },
   { title: "Choose the occasion", short: "Occasion", emoji: "02" },
-  { title: "Write the message", short: "Message", emoji: "03" },
-  { title: "Pick their cake", short: "Cake", emoji: "04" },
-  { title: "Hide little surprises", short: "Notes", emoji: "05" },
-  { title: "Add the memories", short: "Memories", emoji: "06" },
-  { title: "Seal the letter", short: "Letter", emoji: "07" },
+  { title: "Choose the music", short: "Music", emoji: "03" },
+  { title: "Write the message", short: "Message", emoji: "04" },
+  { title: "Pick their cake", short: "Cake", emoji: "05" },
+  { title: "Hide little surprises", short: "Notes", emoji: "06" },
+  { title: "Add the memories", short: "Memories", emoji: "07" },
+  { title: "Seal the letter", short: "Letter", emoji: "08" },
 ];
 
 function generateSlug(name: string) {
@@ -103,6 +105,10 @@ export default function WishForm() {
   const [gender, setGender] = useState<RecipientGender>("boy");
   const [occasion, setOccasion] = useState<Occasion>("birthday");
   const [theme, setTheme] = useState<WishTheme>("birthday");
+  const [selectedSong, setSelectedSong] = useState<WishSongId | null>(null);
+  const [previewSong, setPreviewSong] = useState<WishSongId | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewRequestRef = useRef(0);
   const [birthdayMessage, setBirthdayMessage] = useState("");
   const [cakeType, setCakeType] = useState<CakeType>("chocolate");
   const [royalNotes, setRoyalNotes] = useState<string[]>(["", "", ""]);
@@ -115,8 +121,9 @@ export default function WishForm() {
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
 
   const currentOccasion = OCCASIONS.find((item) => item.id === occasion) ?? OCCASIONS[0];
-  const progress = (formStage / 7) * 100;
+  const progress = (formStage / 8) * 100;
   const selectedMood = BUTTON_THEME_STYLES[theme];
+  const selectedSongData = songs.find((song) => song.id === selectedSong);
 
   useEffect(() => {
     const editSlug = new URLSearchParams(window.location.search).get("edit");
@@ -140,6 +147,8 @@ export default function WishForm() {
       setCreatorName(data.creator_name ?? "");
       setGender((data.recipient_gender ?? "boy") as RecipientGender);
       setTheme((data.theme ?? "birthday") as WishTheme);
+      const savedSong = songs.find((song) => song.id === data.song);
+      setSelectedSong(savedSong?.id ?? null);
       setOccasion(data.occasion === "anniversary" ? "anniversary" : "birthday");
       setBirthdayMessage(data.birthday_message ?? "");
       setCakeType((data.cake_type ?? "chocolate") as CakeType);
@@ -157,9 +166,62 @@ export default function WishForm() {
   }, [occasion]);
 
   useEffect(() => () => {
+    previewRequestRef.current += 1;
     previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     previewUrlsRef.current.clear();
+    const audio = previewAudioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    }
   }, []);
+
+  useEffect(() => {
+    const audio = previewAudioRef.current;
+    if (!audio) return;
+
+    previewRequestRef.current += 1;
+    audio.pause();
+    audio.currentTime = 0;
+    setPreviewSong(null);
+  }, [formStage]);
+
+  const toggleSongPreview = (songId: WishSongId) => {
+    const song = songs.find((item) => item.id === songId);
+    const audio = previewAudioRef.current;
+    if (!song || !audio || !song.src) return;
+
+    // Same song = stop.
+    if (previewSong === songId && !audio.paused) {
+      previewRequestRef.current += 1;
+      audio.pause();
+      audio.currentTime = 0;
+      setPreviewSong(null);
+      return;
+    }
+
+    // Invalidate the previous play() promise before switching tracks.
+    const requestId = ++previewRequestRef.current;
+
+    // Reuse one audio element. Starting another preview therefore stops the
+    // previous song first, then loads and plays the newly tapped song.
+    audio.pause();
+    audio.currentTime = 0;
+    audio.src = song.src;
+    audio.load();
+    setPreviewSong(songId);
+
+    void audio.play().then(() => {
+      if (requestId !== previewRequestRef.current) {
+        audio.pause();
+      }
+    }).catch(() => {
+      if (requestId === previewRequestRef.current) {
+        setPreviewSong(null);
+      }
+    });
+  };
 
   const updateRoyalNote = (index: number, value: string) => {
     setRoyalNotes((current) => current.map((note, i) => (i === index ? value : note)));
@@ -234,7 +296,10 @@ export default function WishForm() {
       if (!recipientName.trim()) return "Please enter the recipient's name.";
       if (!creatorName.trim()) return "Please enter your name.";
     }
-    if (stage === 3 && !birthdayMessage.trim()) {
+    if (stage === 3 && !selectedSong) {
+      return "Please select a song before continuing.";
+    }
+    if (stage === 4 && !birthdayMessage.trim()) {
       return `Please write the ${currentOccasion.label.toLowerCase()} message.`;
     }
     return null;
@@ -246,7 +311,7 @@ export default function WishForm() {
       alert(error);
       return;
     }
-    if (formStage < 7) {
+    if (formStage < 8) {
       setDirection(1);
       setFormStage((stage) => stage + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -298,6 +363,7 @@ export default function WishForm() {
         recipient_gender: gender,
         occasion,
         theme,
+        song: selectedSong,
         birthday_message: birthdayMessage.trim(),
         cake_type: cakeType,
         royal_notes: cleanedNotes,
@@ -370,21 +436,134 @@ export default function WishForm() {
     );
 
     if (formStage === 3) return (
-      <FormCard number="03" title={`${currentOccasion.label} message`} subtitle="These are the words they will carry through the experience.">
+      <FormCard number="03" title="Choose the music" subtitle="Preview the soundtrack, then choose the one song they will hear throughout their WishVerse.">
+        <audio
+          ref={previewAudioRef}
+          preload="auto"
+          onEnded={() => setPreviewSong(null)}
+          onError={() => setPreviewSong(null)}
+          aria-hidden="true"
+        />
+        {selectedSongData ? (
+          <div className="mb-5 rounded-2xl border border-white/20 bg-white/[.07] p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[.06] text-white/70">
+                <Check size={17} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-medium uppercase tracking-[0.22em] text-white/35">Selected soundtrack</p>
+                <p className="mt-1 truncate text-sm font-medium text-white/90">{selectedSongData.name}</p>
+                <p className="mt-1 truncate text-xs text-white/35">{selectedSongData.description}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  previewRequestRef.current += 1;
+                  const audio = previewAudioRef.current;
+                  if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                  }
+                  setPreviewSong(null);
+                  setSelectedSong(null);
+                }}
+                className="flex h-10 shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[.03] px-3 text-xs text-white/55 transition hover:border-white/25 hover:bg-white/[.08] hover:text-white"
+                aria-label={`Remove ${selectedSongData.name} from the wish`}
+                title="Remove selected song"
+              >
+                <X size={15} />
+                <span className="hidden sm:inline">Remove</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="space-y-3">
+          {songs.map((song) => {
+            const selected = selectedSong === song.id;
+            const previewing = previewSong === song.id;
+            const selectionLocked = selectedSong !== null && !selected;
+
+            return (
+              <div
+                key={song.id}
+                className={`flex items-center gap-3 rounded-2xl border p-3 transition sm:p-4 ${
+                  selected
+                    ? "border-white/30 bg-white/[.08]"
+                    : selectionLocked
+                      ? "border-white/[.06] bg-black/10 opacity-45"
+                      : "border-white/10 bg-black/20"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleSongPreview(song.id)}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[.04] text-white/75 transition hover:border-white/25 hover:bg-white/[.08] hover:text-white"
+                  aria-label={previewing ? `Stop preview of ${song.name}` : `Play preview of ${song.name}`}
+                  title={previewing ? "Stop preview" : "Play preview"}
+                >
+                  {previewing ? (
+                    <span className="h-3.5 w-3.5 rounded-[3px] bg-white" />
+                  ) : (
+                    <span className="ml-0.5 h-0 w-0 border-y-[7px] border-l-[10px] border-y-transparent border-l-white" />
+                  )}
+                </button>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-white/85">{song.name}</p>
+                  <p className="mt-1 truncate text-xs text-white/35">{song.description}</p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={selectionLocked}
+                  onClick={() => {
+                    previewAudioRef.current?.pause();
+                    if (previewAudioRef.current) previewAudioRef.current.currentTime = 0;
+                    setPreviewSong(null);
+                    setSelectedSong(selected ? null : song.id);
+                  }}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${
+                    selected
+                      ? "border-white/35 bg-white/[.10] text-white hover:border-white/50 hover:bg-white/[.15]"
+                      : selectionLocked
+                        ? "cursor-not-allowed border-white/[.06] bg-white/[.02] text-white/15"
+                        : "border-white/10 bg-white/[.025] text-white/45 hover:border-white/25 hover:bg-white/[.07] hover:text-white"
+                  }`}
+                  aria-label={selected ? `Remove ${song.name}` : `Select ${song.name}`}
+                  title={selected ? "Remove selected song" : selectionLocked ? "Another song is already selected" : "Select song"}
+                  aria-pressed={selected}
+                >
+                  {selected ? <X size={16} /> : <Plus size={16} />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="mt-4 text-xs leading-5 text-white/30">
+          Selected: <span className="text-white/60">{selectedSongData?.name ?? "Choose one song"}</span>
+          {selectedSongData?.description ? <span className="text-white/25"> · {selectedSongData.description}</span> : null}
+        </p>
+      </FormCard>
+    );
+    if (formStage === 4) return (
+      <FormCard number="04" title={`${currentOccasion.label} message`} subtitle="These are the words they will carry through the experience.">
         <textarea value={birthdayMessage} onChange={(e) => setBirthdayMessage(e.target.value)} placeholder={`Write something unforgettable for ${recipientName || "them"}...`} rows={10} className="wv-field min-h-[250px] w-full resize-none rounded-3xl border border-white/10 bg-black/25 p-5 leading-7 outline-none placeholder:text-white/20" />
       </FormCard>
     );
-
-    if (formStage === 4) return (
-      <FormCard number="04" title="Choose their cake" subtitle="This cake becomes part of the candle moment inside the wish.">
+    if (formStage === 5) return (
+      <FormCard number="05" title="Choose their cake" subtitle="This cake becomes part of the candle moment inside the wish.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {cakes.map((cake) => <Choice key={cake.id} active={cakeType === cake.id} onClick={() => setCakeType(cake.id)}><span className="text-3xl">{cake.emoji}</span><span><strong className="block">{cake.name}</strong><small className="text-white/35">{cake.description}</small></span></Choice>)}
         </div>
       </FormCard>
     );
 
-    if (formStage === 5) return (
-      <FormCard number="05" title="Hide little surprises" subtitle="Leave up to five notes for them to discover one by one. This stage is optional.">
+    if (formStage === 6) return (
+      <FormCard number="06" title="Hide little surprises" subtitle="Leave up to five notes for them to discover one by one. This stage is optional.">
         <div className="space-y-5">
           {royalNotes.map((note, index) => {
             const suggestion = SECRET_NOTE_SUGGESTIONS[occasion][suggestionIndexes[index] ?? 0];
@@ -398,7 +577,7 @@ export default function WishForm() {
                 <div className="mt-3 rounded-xl border border-white/[.07] bg-white/[.025] p-3">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="mb-1 text-[9px] uppercase tracking-[.2em] text-white/25">{currentOccasion.label} suggestion</p>
+                      <p className="mb-1 text-[11px] uppercase tracking-[.2em] text-white/25">{currentOccasion.label} suggestion</p>
                       <AnimatePresence mode="wait" initial={false}>
                         <motion.p key={`${occasion}-${suggestionIndexes[index] ?? 0}`} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }} className="text-xs leading-5 text-white/45">{suggestion}</motion.p>
                       </AnimatePresence>
@@ -417,8 +596,8 @@ export default function WishForm() {
       </FormCard>
     );
 
-    if (formStage === 6) return (
-      <FormCard number="06" title="Add the memories" subtitle="Upload the photos that deserve their own moment. Each image can be up to 10 MB.">
+    if (formStage === 7) return (
+      <FormCard number="07" title="Add the memories" subtitle="Upload the photos that deserve their own moment. Each image can be up to 10 MB.">
         <input ref={memoryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => addMemoryFiles(e.target.files)} />
         {existingMemories.length > 0 && <div className="mb-6 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-sm text-white/50">{existingMemories.length} existing {existingMemories.length === 1 ? "memory is" : "memories are"} already saved and will stay in this wish.</div>}
         {memories.length > 0 ? <div className="grid gap-4 sm:grid-cols-2">{memories.map((memory, index) => <div key={memory.id} className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"><div className="relative aspect-[4/3]"><img src={memory.previewUrl} alt={`New memory ${index + 1}`} className="h-full w-full object-cover" /><button type="button" onClick={() => removeMemory(memory.id)} className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white/70"><X size={14} /></button></div><input value={memory.caption} onChange={(e) => updateMemoryCaption(memory.id, e.target.value)} placeholder="One line about this memory..." maxLength={160} className="wv-field w-full border-0 bg-black/30 p-3 text-sm outline-none" /></div>)}</div> : <button type="button" onClick={() => memoryInputRef.current?.click()} className="flex min-h-[240px] w-full flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-black/20 text-center hover:bg-white/[.03]"><Upload size={28} className="text-white/35" /><strong className="mt-4 text-sm text-white/70">Upload your memories</strong><span className="mt-2 text-xs text-white/30">Choose one or many photos.</span></button>}
@@ -427,12 +606,12 @@ export default function WishForm() {
     );
 
     return (
-      <FormCard number="07" title="Seal the secret letter" subtitle={`Write the final words you want ${recipientName || "them"} to discover. This is the only required field on the final stage.`}>
+      <FormCard number="08" title="Seal the secret letter" subtitle={`Write the final words you want ${recipientName || "them"} to discover. This is the only required field on the final stage.`}>
         <textarea value={secretLetter} onChange={(e) => setSecretLetter(e.target.value)} placeholder="There is something I've always wanted to tell you..." rows={12} className="wv-field min-h-[300px] w-full resize-none rounded-3xl border border-white/10 bg-black/25 p-5 leading-7 outline-none placeholder:text-white/20" />
         <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.025] p-4 text-xs text-white/35"><Sparkles size={14} className="mb-2 text-white/50" />Everything is ready. On Create, your WishVerse will be saved and you'll get a separate page with Preview, Edit and Copy Link.</div>
       </FormCard>
     );
-  }, [formStage, recipientName, creatorName, gender, occasion, theme, birthdayMessage, cakeType, royalNotes, memories, existingMemories, secretLetter, currentOccasion, suggestionIndexes]);
+  }, [formStage, recipientName, creatorName, gender, occasion, theme, selectedSong, birthdayMessage, cakeType, royalNotes, memories, existingMemories, secretLetter, currentOccasion, suggestionIndexes, previewSong]);
 
   if (loadingEdit) {
     return <div className="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-white/10 bg-white/[.03]"><Loader2 className="animate-spin text-white/50" /></div>;
@@ -442,9 +621,9 @@ export default function WishForm() {
     <motion.div initial={{ opacity: 0, y: 24, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: .65, ease: [0.22, 1, .36, 1] }} className="wv-app-shell relative mx-auto w-full max-w-3xl">
       <div className="mb-5 rounded-[2rem] border border-white/10 bg-white/[.035] p-4 backdrop-blur-xl sm:p-5">
         <div className="flex items-end justify-between gap-4">
-          <div><p className="text-[9px] uppercase tracking-[.35em] text-white/30">WishVerse Studio {editingSlug ? "· Editing" : ""}</p><h2 className="mt-2 text-xl font-medium tracking-tight sm:text-2xl">{STAGES[formStage - 1].title}</h2></div><span className="text-[10px] uppercase tracking-[.25em] text-white/30">{String(formStage).padStart(2, "0")} / 07</span></div>
+          <div><p className="text-[11px] uppercase tracking-[.35em] text-white/30">WishVerse Studio {editingSlug ? "· Editing" : ""}</p><h2 className="mt-2 text-xl font-medium tracking-tight sm:text-2xl">{STAGES[formStage - 1].title}</h2></div><span className="text-[12px] uppercase tracking-[.25em] text-white/30">{String(formStage).padStart(2, "0")} / 08</span></div>
         <div className="mt-5 h-1 overflow-hidden rounded-full bg-white/[.07]"><motion.div animate={{ width: `${progress}%` }} transition={{ duration: .45, ease: "easeOut" }} className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${selectedMood?.primary ?? "#6A0C1F"}, ${selectedMood?.secondary ?? "#B56B78"}, ${selectedMood?.accent ?? "#C8A24A"})` }} /></div>
-        <div className="mt-3 grid grid-cols-7 gap-1.5">{STAGES.map((stage, index) => <div key={stage.emoji} className="text-center"><div className={`mx-auto h-1.5 rounded-full transition ${index + 1 <= formStage ? "bg-white/75" : "bg-white/10"}`} /><span className={`mt-2 hidden text-[8px] uppercase tracking-[.15em] sm:block ${index + 1 === formStage ? "text-white/65" : "text-white/20"}`}>{stage.short}</span></div>)}</div>
+        <div className="mt-3 grid grid-cols-8 gap-1.5">{STAGES.map((stage, index) => <div key={stage.emoji} className="text-center"><div className={`mx-auto h-1.5 rounded-full transition ${index + 1 <= formStage ? "bg-white/75" : "bg-white/10"}`} /><span className={`mt-2 hidden text-[10px] uppercase tracking-[.15em] sm:block ${index + 1 === formStage ? "text-white/65" : "text-white/20"}`}>{stage.short}</span></div>)}</div>
       </div>
 
       <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#0B0A10]/85 p-2 shadow-[0_35px_100px_rgba(0,0,0,.35)] backdrop-blur-2xl sm:p-3">
@@ -457,7 +636,7 @@ export default function WishForm() {
 
       <div className="sticky bottom-4 z-30 mt-5 flex gap-3 rounded-2xl border border-white/10 bg-[#0B0A10]/80 p-3 backdrop-blur-2xl">
         <button type="button" onClick={goBack} disabled={formStage === 1 || loading} className="flex min-h-12 items-center gap-2 rounded-xl border border-white/10 px-5 text-xs uppercase tracking-[.18em] text-white/50 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"><ArrowLeft size={14} /> Back</button>
-        <button type="button" onClick={goNext} disabled={loading} className="wv-next wv-primary-cta flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-5 text-xs font-semibold uppercase tracking-[.18em] text-white disabled:opacity-50">{loading ? <><Loader2 size={15} className="animate-spin" /> Creating...</> : formStage === 7 ? <>Create my WishVerse <Check size={15} /></> : <>Continue <ArrowRight size={15} /></>}</button>
+        <button type="button" onClick={goNext} disabled={loading} className="wv-next flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl px-5 text-xs font-semibold uppercase tracking-[.18em] text-white disabled:opacity-50">{loading ? <><Loader2 size={15} className="animate-spin" /> Creating...</> : formStage === 8 ? <>Create my WishVerse <Check size={15} /></> : <>Continue <ArrowRight size={15} /></>}</button>
       </div>
 
       <style jsx>{`
@@ -513,7 +692,7 @@ export default function WishForm() {
 }
 
 function FormCard({ number, title, subtitle, children }: { number: string; title: string; subtitle: string; children: ReactNode }) {
-  return <section><div className="mb-7"><span className="text-[9px] uppercase tracking-[.35em] text-white/25">Stage {number}</span><h3 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">{title}</h3><p className="mt-3 max-w-2xl text-sm leading-6 text-white/35">{subtitle}</p></div>{children}</section>;
+  return <section><div className="mb-7"><span className="text-[11px] uppercase tracking-[.35em] text-white/25">Stage {number}</span><h3 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">{title}</h3><p className="mt-3 max-w-2xl text-sm leading-6 text-white/35">{subtitle}</p></div>{children}</section>;
 }
 
 function Input({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (value: string) => void }) {
