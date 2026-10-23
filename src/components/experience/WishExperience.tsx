@@ -1572,7 +1572,7 @@ export default function WishExperience({
                 onClick={nextStage}
                 whileHover={{ scale: 1.035, y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                className="relative z-20 mt-9 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
+                className="wv-primary-cta relative z-20 mt-9 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
                 style={{
                   borderColor: `${theme.accent}40`,
                   backgroundColor: `${theme.accent}0d`,
@@ -2097,7 +2097,7 @@ export default function WishExperience({
                       whileHover={{ scale: 1.045, y: -2 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={lightCake}
-                      className="rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
+                      className="wv-primary-cta rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
                       style={{
                         borderColor: `${theme.accent}50`,
                         backgroundColor: `${theme.accent}12`,
@@ -2122,7 +2122,7 @@ export default function WishExperience({
                       whileTap={{ scale: 0.96 }}
                       onClick={blowCake}
                       disabled={isBlowing}
-                      className="rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
+                      className="wv-primary-cta rounded-full border px-7 py-3.5 text-sm shadow-[0_15px_45px_rgba(0,0,0,0.22)] backdrop-blur-md transition"
                       style={{
                         borderColor: `${theme.secondary}60`,
                         backgroundColor: `${theme.secondary}12`,
@@ -2179,7 +2179,7 @@ export default function WishExperience({
                         onClick={nextStage}
                         whileHover={{ scale: 1.035, y: -1 }}
                         whileTap={{ scale: 0.97 }}
-                        className="mt-5 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
+                        className="wv-primary-cta mt-5 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
                         style={{
                           borderColor: `${theme.accent}40`,
                           backgroundColor: `${theme.accent}10`,
@@ -2628,7 +2628,7 @@ export default function WishExperience({
                   onClick={nextStage}
                   whileHover={{ scale: 1.035, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="relative z-10 mt-8 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
+                  className="wv-primary-cta relative z-10 mt-8 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm transition"
                   style={{
                     borderColor: `${theme.accent}40`,
                     backgroundColor: `${theme.accent}10`,
@@ -3048,7 +3048,7 @@ export default function WishExperience({
                 onClick={nextStage}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="mx-auto mt-9 flex items-center gap-2 rounded-full border px-6 py-3 text-xs uppercase tracking-[0.18em] transition"
+                className="wv-primary-cta mx-auto mt-9 flex items-center gap-2 rounded-full border px-6 py-3 text-xs uppercase tracking-[0.18em] transition"
                 style={{
                   borderColor: `${theme.accent}35`,
                   backgroundColor: `${theme.accent}0c`,
@@ -3504,7 +3504,7 @@ export default function WishExperience({
                     onClick={nextStage}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="mt-6 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm"
+                    className="wv-primary-cta mt-6 inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm"
                     style={{
                       borderColor: `${theme.accent}38`,
                       backgroundColor: `${theme.accent}0c`,
@@ -3617,7 +3617,7 @@ export default function WishExperience({
                 onClick={restartExperience}
                 whileHover={{ scale: 1.035, y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                className="mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
+                className="wv-primary-cta mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border px-7 py-3 text-sm backdrop-blur-md transition"
                 style={{
                   borderColor: `${theme.accent}45`,
                   backgroundColor: `${theme.accent}10`,
@@ -3668,120 +3668,89 @@ export default function WishExperience({
           </span>
         </div>
       )}
+
+      <style jsx global>{`
+        .wv-primary-cta {
+          --wv-cta-edge: var(--wv-accent, #C8A24A);
+          --wv-cta-glow: color-mix(in srgb, var(--wv-accent, #C8A24A) 34%, transparent);
+          --wv-cta-cutout: var(--wish-background, #0F0D0E);
+          position: relative;
+          isolation: isolate;
+          overflow: visible !important;
+          border-color: var(--wv-cta-edge) !important;
+          box-shadow:
+            0 0 0 1px color-mix(in srgb, var(--wv-accent, #C8A24A) 8%, transparent),
+            0 15px 45px color-mix(in srgb, var(--wv-primary, #6A0C1F) 24%, transparent);
+          transition:
+            transform .35s cubic-bezier(.22,1,.36,1),
+            border-color .35s ease,
+            box-shadow .5s ease;
+        }
+
+        .wv-primary-cta::after,
+        .wv-primary-cta::before {
+          content: "";
+          position: absolute;
+          left: 3%;
+          width: 94%;
+          height: 38%;
+          background: var(--wv-cta-cutout);
+          pointer-events: none;
+          z-index: 0;
+          transition: transform .5s cubic-bezier(.22,1,.36,1);
+        }
+
+        .wv-primary-cta::after {
+          top: -10px;
+          transform-origin: center;
+        }
+
+        .wv-primary-cta::before {
+          bottom: -10px;
+          transform-origin: center;
+        }
+
+        .wv-primary-cta:hover::before,
+        .wv-primary-cta:hover::after {
+          transform: scale(0);
+        }
+
+        .wv-primary-cta:hover {
+          border-color: color-mix(in srgb, var(--wv-accent, #C8A24A) 86%, white) !important;
+          box-shadow:
+            inset 0 0 25px var(--wv-cta-glow),
+            0 0 38px color-mix(in srgb, var(--wv-accent, #C8A24A) 16%, transparent),
+            0 20px 55px color-mix(in srgb, var(--wv-primary, #6A0C1F) 34%, transparent);
+        }
+
+        .wv-primary-cta > * {
+          position: relative;
+          z-index: 1;
+        }
+
+        .wv-primary-cta:focus-visible {
+          outline: 2px solid var(--wv-cta-edge);
+          outline-offset: 4px;
+        }
+
+        .wv-primary-cta:disabled {
+          transform: none;
+          cursor: not-allowed;
+        }
+
+        .wv-primary-cta:disabled::before,
+        .wv-primary-cta:disabled::after {
+          display: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .wv-primary-cta,
+          .wv-primary-cta::before,
+          .wv-primary-cta::after {
+            transition: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
-
-/* ===================================================== */
-/* WISHVERSE PREMIUM BUTTON SYSTEM */
-/* The supplied CTA treatment is translated into a */
-/* cinematic, mood-aware control language. */
-/* ===================================================== */
-
-<style jsx global>{`
-  .wv-button-surface {
-    --wv-primary: #6A0C1F;
-    --wv-secondary: #B56B78;
-    --wv-accent: #C8A24A;
-  }
-
-  .wv-button-surface button,
-  .wv-button-surface [role="button"] {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    border-color: color-mix(in srgb, var(--wv-accent) 28%, rgba(255,255,255,0.1));
-    box-shadow:
-      0 12px 34px color-mix(in srgb, var(--wv-primary) 20%, transparent),
-      inset 0 1px 0 rgba(255,255,255,0.10),
-      inset 0 -1px 0 rgba(0,0,0,0.18);
-    transition:
-      transform 260ms cubic-bezier(.22,1,.36,1),
-      border-color 260ms ease,
-      box-shadow 260ms ease,
-      background-color 260ms ease;
-  }
-
-  .wv-button-surface button::before,
-  .wv-button-surface [role="button"]::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-    background:
-      linear-gradient(135deg,
-        color-mix(in srgb, var(--wv-primary) 92%, black),
-        color-mix(in srgb, var(--wv-secondary) 58%, var(--wv-primary)) 54%,
-        color-mix(in srgb, var(--wv-accent) 45%, var(--wv-secondary)));
-    opacity: 0.16;
-    transition: opacity 260ms ease;
-  }
-
-  .wv-button-surface button::after,
-  .wv-button-surface [role="button"]::after {
-    content: "";
-    position: absolute;
-    top: -80%;
-    left: -35%;
-    width: 38%;
-    height: 260%;
-    z-index: -1;
-    pointer-events: none;
-    transform: rotate(24deg) translateX(-260%);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent);
-    transition: transform 720ms cubic-bezier(.22,1,.36,1);
-  }
-
-  .wv-button-surface button:hover,
-  .wv-button-surface [role="button"]:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--wv-accent) 64%, rgba(255,255,255,0.2));
-    box-shadow:
-      0 18px 48px color-mix(in srgb, var(--wv-primary) 30%, transparent),
-      0 0 28px color-mix(in srgb, var(--wv-accent) 11%, transparent),
-      inset 0 1px 0 rgba(255,255,255,0.16);
-  }
-
-  .wv-button-surface button:hover::before,
-  .wv-button-surface [role="button"]:hover::before {
-    opacity: 0.32;
-  }
-
-  .wv-button-surface button:hover::after,
-  .wv-button-surface [role="button"]:hover::after {
-    transform: rotate(24deg) translateX(610%);
-  }
-
-  .wv-button-surface button:active,
-  .wv-button-surface [role="button"]:active {
-    transform: translateY(0) scale(0.985);
-  }
-
-  .wv-button-surface button:focus-visible,
-  .wv-button-surface [role="button"]:focus-visible {
-    outline: 1px solid color-mix(in srgb, var(--wv-accent) 80%, white);
-    outline-offset: 3px;
-  }
-
-  .wv-button-surface button:disabled {
-    transform: none;
-    cursor: not-allowed;
-  }
-
-  .wv-button-surface button:disabled::after {
-    display: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .wv-button-surface button,
-    .wv-button-surface [role="button"] {
-      transition: none;
-    }
-
-    .wv-button-surface button::after,
-    .wv-button-surface [role="button"]::after {
-      display: none;
-    }
-  }
-`}</style>
