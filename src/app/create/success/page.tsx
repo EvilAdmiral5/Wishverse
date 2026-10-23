@@ -189,7 +189,7 @@ export default function CreateSuccessPage() {
                 <button
                   type="button"
                   onClick={openPreview}
-                  className="group flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:-translate-y-1"
+                  className="wv-primary-cta group flex min-h-14 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold transition hover:-translate-y-1"
                 >
                   <Eye size={16} />
                   Preview
@@ -208,7 +208,7 @@ export default function CreateSuccessPage() {
               <button
                 type="button"
                 onClick={copyWishLink}
-                className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[.04] px-5 text-sm text-white/75 transition hover:-translate-y-1 hover:bg-white/[.07]"
+                className="wv-primary-cta mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm text-white transition hover:-translate-y-1"
               >
                 {copied ? (
                   <>
@@ -241,6 +241,89 @@ export default function CreateSuccessPage() {
           )}
         </AnimatePresence>
       </div>
+
+      <style jsx>{`
+        .wv-primary-cta {
+          position: relative;
+          isolation: isolate;
+          overflow: visible;
+          border: 2px ridge #e8c7d8;
+          outline: none;
+          background: transparent;
+          color: #fff7fa;
+          box-shadow: inset 0 0 0 rgba(232, 199, 216, 0);
+          transition:
+            box-shadow 0.5s ease,
+            transform 0.35s ease,
+            border-color 0.35s ease,
+            background-color 0.35s ease;
+        }
+
+        .wv-primary-cta::after {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          top: -9px;
+          left: 3%;
+          width: 94%;
+          height: 40%;
+          border-radius: 2px;
+          background: #0b0a10;
+          transform-origin: center;
+          transition: transform 0.45s ease;
+          pointer-events: none;
+        }
+
+        .wv-primary-cta::before {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          top: 80%;
+          left: 3%;
+          width: 94%;
+          height: 40%;
+          border-radius: 2px;
+          background: #0b0a10;
+          transform-origin: center;
+          transition: transform 0.45s ease;
+          pointer-events: none;
+        }
+
+        .wv-primary-cta:hover::before,
+        .wv-primary-cta:hover::after {
+          transform: scale(0);
+        }
+
+        .wv-primary-cta:hover {
+          border-color: #f5ddeb;
+          background: rgba(232, 199, 216, 0.055);
+          box-shadow:
+            inset 0 0 25px rgba(232, 199, 216, 0.16),
+            0 0 28px rgba(232, 199, 216, 0.12);
+        }
+
+        .wv-primary-cta:focus-visible {
+          box-shadow:
+            0 0 0 3px rgba(232, 199, 216, 0.14),
+            inset 0 0 25px rgba(232, 199, 216, 0.16);
+        }
+
+        .wv-primary-cta:active {
+          transform: translateY(0) scale(0.985);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .wv-primary-cta,
+          .wv-primary-cta::before,
+          .wv-primary-cta::after {
+            transition: none;
+          }
+
+          .wv-primary-cta:hover {
+            transform: none;
+          }
+        }
+      `}</style>
     </main>
   );
 }
