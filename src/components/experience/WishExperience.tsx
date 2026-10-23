@@ -683,8 +683,7 @@ export default function WishExperience({
   const [cakeLit, setCakeLit] = useState(false);
   const [cakeBlown, setCakeBlown] = useState(false);
   const [isBlowing, setIsBlowing] = useState(false);
-  const blowTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
-
+  const blowTimerRef = useRef<number | null>(null);
   const [activeNote, setActiveNote] = useState<number | null>(
     null
   );
