@@ -281,8 +281,8 @@ export default function WishForm() {
         <div className="mt-7">
           <p className="text-sm text-white/50">Recipient gender</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <Choice active={gender === "boy"} onClick={() => setGender("boy")}>🧸 <span><strong className="block">Male</strong><small className="text-white/35"></small></span></Choice>
-            <Choice active={gender === "girl"} onClick={() => setGender("girl")}>🤎 <span><strong className="block">Female</strong><small className="text-white/35"></small></span></Choice>
+            <Choice active={gender === "boy"} onClick={() => setGender("boy")}>🧸 <span><strong className="block">Male</strong><small className="text-white/35">Bubu</small></span></Choice>
+            <Choice active={gender === "girl"} onClick={() => setGender("girl")}>🤎 <span><strong className="block">Female</strong><small className="text-white/35">Dudu</small></span></Choice>
           </div>
         </div>
       </FormCard>
@@ -306,7 +306,11 @@ export default function WishForm() {
             {ALL_THEMES.map((themeId) => (
               <Choice key={themeId} active={theme === themeId} onClick={() => setTheme(themeId)}>
                 <span className="text-2xl">{themeId === "birthday" ? "🍷" : themeId === "anniversary" ? "🌙" : themeId === "romantic" ? "🌹" : themeId === "best-friend" ? "✨" : "🎬"}</span>
-                <span><strong className="block">{MOOD_LABELS[themeId]}</strong><small className="text-white/35">{MOOD_DESCRIPTIONS[themeId]}</small></span>
+                <span className="min-w-0 flex-1">
+                  <strong className="block">{MOOD_LABELS[themeId]}</strong>
+                  <small className="text-white/35">{MOOD_DESCRIPTIONS[themeId]}</small>
+                </span>
+                <ThemePreview themeId={themeId} active={theme === themeId} />
               </Choice>
             ))}
           </div>
@@ -402,6 +406,52 @@ function FormCard({ number, title, subtitle, children }: { number: string; title
 
 function Input({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (value: string) => void }) {
   return <label className="block"><span className="text-sm text-white/50">{label}</span><input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="wv-field mt-3 w-full rounded-2xl border border-white/10 bg-black/25 p-4 outline-none placeholder:text-white/20" /></label>;
+}
+
+function ThemePreview({ themeId, active }: { themeId: WishTheme; active: boolean }) {
+  const colors = BUTTON_THEME_STYLES[themeId];
+
+  const icon =
+    themeId === "birthday"
+      ? "🎂"
+      : themeId === "anniversary"
+        ? "💍"
+        : themeId === "romantic"
+          ? "🌹"
+          : themeId === "best-friend"
+            ? "✨"
+            : "🎬";
+
+  return (
+    <motion.span
+      layout
+      aria-hidden="true"
+      animate={{ scale: active ? 1.04 : 1, opacity: active ? 1 : 0.82 }}
+      transition={{ duration: 0.25 }}
+      className="relative hidden h-14 w-24 shrink-0 overflow-hidden rounded-xl border sm:block"
+      style={{
+        borderColor: active ? `${colors.accent}99` : "rgba(255,255,255,.10)",
+        background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary} 58%, ${colors.accent})`,
+        boxShadow: active ? `0 8px 24px ${colors.primary}55, inset 0 1px 0 rgba(255,255,255,.22)` : "inset 0 1px 0 rgba(255,255,255,.10)",
+      }}
+    >
+      <span
+        className="absolute -right-4 -top-5 h-16 w-16 rounded-full blur-xl"
+        style={{ background: colors.accent, opacity: 0.42 }}
+      />
+      <span
+        className="absolute -bottom-6 -left-3 h-14 w-14 rounded-full blur-lg"
+        style={{ background: colors.secondary, opacity: 0.55 }}
+      />
+      <span className="relative z-10 flex h-full items-center justify-center text-2xl drop-shadow-lg">
+        {icon}
+      </span>
+      <span
+        className="absolute bottom-1.5 left-1.5 h-1 w-8 rounded-full"
+        style={{ background: colors.accent, opacity: 0.9 }}
+      />
+    </motion.span>
+  );
 }
 
 function Choice({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
