@@ -60,4 +60,24 @@ export const themes: Record<WishTheme, WishThemeConfig> = {
     text: "#FFFFFF",
     muted: "#FFFFFF66",
   },
+
+  bestFriend: {
+    name: "Sunset Bloom",
+    primary: "#A65335",
+    secondary: "#E58B61",
+    accent: "#F3C677",
+    background: "#15100D",
+    text: "#FFFFFF",
+    muted: "#FFFFFF66",
+  },
+
+  romanticBirthday: {
+    name: "Rose Noir",
+    primary: "#7A1735",
+    secondary: "#D05A7A",
+    accent: "#F2B5C5",
+    background: "#12090D",
+    text: "#FFFFFF",
+    muted: "#FFFFFF66",
+  },
 };

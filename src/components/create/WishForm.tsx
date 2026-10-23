@@ -6,8 +6,14 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cakes } from "@/data/cakes";
-import { songs, type WishSongId } from "@/data/songs";
-import type { RecipientGender, WishTheme, CakeType, Memory } from "@/types/wish";
+import { songs } from "@/data/songs";
+import type {
+  RecipientGender,
+  WishTheme,
+  WishSongId,
+  CakeType,
+  Memory,
+} from "@/types/wish";
 
 type Occasion = "birthday" | "anniversary";
 type MemoryDraft = Memory & { file: File; previewUrl: string };
@@ -29,16 +35,51 @@ const MOOD_LABELS: Record<WishTheme, string> = {
   birthday: "Velvet Celebration",
   anniversary: "Midnight Romance",
   romantic: "Rose Noir",
-  "best-friend": "Golden Midnight",
+  "best-friend": "Sunset Bloom",
+  bestFriend: "Sunset Bloom",
+  romanticBirthday: "Rose Noir",
   cinematic: "Royal Eclipse",
 };
 
-const BUTTON_THEME_STYLES: Record<WishTheme, { primary: string; secondary: string; accent: string }> = {
-  birthday: { primary: "#6A0C1F", secondary: "#B56B78", accent: "#C8A24A" },
-  anniversary: { primary: "#4A1026", secondary: "#9B4D68", accent: "#D6A6B8" },
-  romantic: { primary: "#7A1735", secondary: "#D05A7A", accent: "#F2B5C5" },
-  "best-friend": { primary: "#3A2630", secondary: "#A66A78", accent: "#D7B56D" },
-  cinematic: { primary: "#25204A", secondary: "#5D4FA3", accent: "#D7B56D" },
+const BUTTON_THEME_STYLES: Record<
+  WishTheme,
+  { primary: string; secondary: string; accent: string }
+> = {
+  birthday: {
+    primary: "#6A0C1F",
+    secondary: "#B56B78",
+    accent: "#C8A24A",
+  },
+  anniversary: {
+    primary: "#4A1026",
+    secondary: "#9B4D68",
+    accent: "#D6A6B8",
+  },
+  romantic: {
+    primary: "#7A1735",
+    secondary: "#D05A7A",
+    accent: "#F2B5C5",
+  },
+  "best-friend": {
+    primary: "#A65335",
+    secondary: "#E58B61",
+    accent: "#F3C677",
+  },
+  bestFriend: {
+    primary: "#A65335",
+    secondary: "#E58B61",
+    accent: "#F3C677",
+  },
+  romanticBirthday: {
+    primary: "#7A1735",
+    secondary: "#D05A7A",
+    accent: "#F2B5C5",
+  },
+  cinematic: {
+    primary: "#25204A",
+    secondary: "#5D4FA3",
+    accent: "#D7B56D",
+  },
 };
 
 const MOOD_DESCRIPTIONS: Record<WishTheme, string> = {
@@ -46,6 +87,8 @@ const MOOD_DESCRIPTIONS: Record<WishTheme, string> = {
   anniversary: "Deep romantic tones for a timeless evening feel.",
   romantic: "Soft rose tones with an intimate romantic atmosphere.",
   "best-friend": "Warm golden tones with a joyful midnight atmosphere.",
+  bestFriend: "Warm golden tones with a joyful midnight atmosphere.",
+  romanticBirthday: "Soft rose tones with an intimate romantic atmosphere.",
   cinematic: "A dramatic cinematic atmosphere that feels like a scene.",
 };
 

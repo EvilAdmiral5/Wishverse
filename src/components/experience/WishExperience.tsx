@@ -129,8 +129,8 @@ function WishVerseIntro({
   useEffect(() => {
     const duration = 2400;
     const start = performance.now();
-    let progressTimer: ReturnType<typeof setInterval> | null = null;
-    let completeTimer: ReturnType<typeof setTimeout> | null = null;
+    let progressTimer: number | null = null;
+    let completeTimer: number | null = null;
 
     progressTimer = window.setInterval(() => {
       const elapsed = performance.now() - start;
