@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, RefreshCw, Sparkles, Upload, X, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -38,6 +38,33 @@ const BUTTON_THEME_STYLES: Record<WishTheme, { primary: string; secondary: strin
   romantic: { primary: "#7A1735", secondary: "#D05A7A", accent: "#F2B5C5" },
   "best-friend": { primary: "#3A2630", secondary: "#A66A78", accent: "#D7B56D" },
   cinematic: { primary: "#25204A", secondary: "#5D4FA3", accent: "#D7B56D" },
+};
+
+const NOTE_SUGGESTIONS: Record<Occasion, string[]> = {
+  birthday: [
+    "I hope you know how genuinely happy I am ❤️ that you were born and became a part of my life",
+    "Seeing you happy 🥹 is honestly one of the little things that makes my heart happiest",
+    "I hope this year 🌸 gives you all the love, peace, and happiness you quietly wish for",
+    "You deserve to feel loved today 🫶 and honestly you deserve that feeling every single day",
+    "I hope you look back at this birthday ✨ and remember just how loved you were",
+    "Keep that beautiful smile of yours 😊 because it means more to me than you probably realize",
+    "I hope this new chapter 🌷 brings you closer to everything you've been wishing for",
+    "No matter how much life changes 💫 I hope you always know how much you mean to me",
+    "Today is your day 🎂 but I'm the one who feels lucky for having you in my life",
+    "I hope this birthday becomes one of those memories ❤️ that stays with you for a very long time",
+  ],
+  anniversary: [
+    "Another year with you ❤️ and I still feel lucky that somehow our paths found each other",
+    "When I look back at everything we've shared 🥹 I wouldn't trade a single moment of it",
+    "Thank you for staying, understanding, and listening 🫶 even when I didn't know how to say what I felt",
+    "Some of my favorite memories 🌙 have one thing in common — you were there",
+    "I hope we never stop making the kind of memories 🌹 we'll look back on and smile about years from now",
+    "If I had to choose all over again ✨ I'd still choose you",
+    "You've become such a beautiful part of my life ❤️ that I can't imagine my story without you in it",
+    "Through all the good days and difficult ones 🫂 I'm grateful that we've had each other",
+    "I don't need everything to be perfect 🌸 I just want more moments with you",
+    "Whatever comes next ♾️ I hope we keep choosing each other, one day at a time",
+  ],
 };
 
 const MOOD_DESCRIPTIONS: Record<WishTheme, string> = {
@@ -78,7 +105,7 @@ export default function WishForm() {
   const [theme, setTheme] = useState<WishTheme>("birthday");
   const [birthdayMessage, setBirthdayMessage] = useState("");
   const [cakeType, setCakeType] = useState<CakeType>("chocolate");
-  const [royalNotes, setRoyalNotes] = useState<string[]>(["", "", ""]);
+  const [royalNotes, setRoyalNotes] = useState<string[]>(["", "", ""]);\n  const [noteSuggestionIndexes, setNoteSuggestionIndexes] = useState<Record<number, number>>({});
   const [memories, setMemories] = useState<MemoryDraft[]>([]);
   const [existingMemories, setExistingMemories] = useState<Memory[]>([]);
   const [secretLetter, setSecretLetter] = useState("");
@@ -140,6 +167,35 @@ export default function WishForm() {
   const removeRoyalNote = (index: number) => {
     if (royalNotes.length <= 1) return;
     setRoyalNotes((current) => current.filter((_, i) => i !== index));
+    setNoteSuggestionIndexes((current) => {
+      const next: Record<number, number> = {};
+      Object.entries(current).forEach(([key, value]) => {
+        const oldIndex = Number(key);
+        if (oldIndex < index) next[oldIndex] = value;
+        if (oldIndex > index) next[oldIndex - 1] = value;
+      });
+      return next;
+    });
+  };
+
+  const getNoteSuggestion = (index: number) => {
+    const suggestions = NOTE_SUGGESTIONS[occasion];
+    const suggestionIndex = noteSuggestionIndexes[index] ?? index % suggestions.length;
+    return suggestions[suggestionIndex];
+  };
+
+  const refreshNoteSuggestion = (index: number) => {
+    const suggestions = NOTE_SUGGESTIONS[occasion];
+    setNoteSuggestionIndexes((current) => ({
+      ...current,
+      [index]: ((current[index] ?? index % suggestions.length) + 1) % suggestions.length,
+    }));
+  };
+
+  const addSuggestedNote = (index: number) => {
+    const suggestion = getNoteSuggestion(index);
+    updateRoyalNote(index, suggestion);
+    refreshNoteSuggestion(index);
   };
 
   const addMemoryFiles = (files: FileList | null) => {
@@ -333,11 +389,79 @@ export default function WishForm() {
     );
 
     if (formStage === 5) return (
-      <FormCard number="05" title="Hide little surprises" subtitle="Leave up to five notes for them to discover one by one. This stage is optional.">
-        <div className="space-y-4">
-          {royalNotes.map((note, index) => <div key={index} className="flex gap-3"><textarea value={note} onChange={(e) => updateRoyalNote(index, e.target.value)} placeholder={`Little surprise ${index + 1}`} rows={3} className="wv-field w-full resize-none rounded-2xl border border-white/10 bg-black/25 p-4 outline-none placeholder:text-white/20" />{royalNotes.length > 1 && <button type="button" onClick={() => removeRoyalNote(index)} className="h-11 w-11 shrink-0 rounded-xl border border-white/10 text-white/40 hover:text-white"><X size={15} /></button>}</div>)}
+      <FormCard number="05" title="Hide little surprises" subtitle="Leave up to five notes for them to discover one by one. Suggestions are optional — write your own words anytime.">
+        <div className="space-y-5">
+          {royalNotes.map((note, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex gap-3">
+                <textarea
+                  value={note}
+                  onChange={(e) => updateRoyalNote(index, e.target.value)}
+                  placeholder={`Little surprise ${index + 1}`}
+                  rows={3}
+                  className="wv-field w-full resize-none rounded-2xl border border-white/10 bg-black/25 p-4 outline-none placeholder:text-white/20"
+                />
+                {royalNotes.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeRoyalNote(index)}
+                    aria-label={`Remove note ${index + 1}`}
+                    className="h-11 w-11 shrink-0 rounded-xl border border-white/10 text-white/40 hover:text-white"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-white/[.07] bg-white/[.025] p-3">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <Sparkles size={12} className="shrink-0 text-[#C8A24A]" />
+                      <span className="text-[9px] uppercase tracking-[.18em] text-white/30">
+                        Suggested note
+                      </span>
+                    </div>
+                    <p className="text-xs leading-5 text-white/45">
+                      {getNoteSuggestion(index)}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => addSuggestedNote(index)}
+                      aria-label={`Add suggested note ${index + 1}`}
+                      title="Add this suggestion"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[.04] text-white/50 transition hover:border-white/20 hover:bg-white/[.08] hover:text-white"
+                    >
+                      <Plus size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => refreshNoteSuggestion(index)}
+                      aria-label={`Show another suggestion for note ${index + 1}`}
+                      title="Show another suggestion"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[.04] text-white/35 transition hover:border-white/20 hover:bg-white/[.08] hover:text-white"
+                    >
+                      <RefreshCw size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        {royalNotes.length < 5 && <button type="button" onClick={addRoyalNote} className="mt-5 rounded-full border border-white/10 px-5 py-3 text-xs uppercase tracking-[.18em] text-white/55 hover:bg-white/5">+ Add another note</button>}
+
+        {royalNotes.length < 5 && (
+          <button
+            type="button"
+            onClick={addRoyalNote}
+            className="mt-5 rounded-full border border-white/10 px-5 py-3 text-xs uppercase tracking-[.18em] text-white/55 hover:bg-white/5"
+          >
+            + Add another note
+          </button>
+        )}
       </FormCard>
     );
 
@@ -356,7 +480,7 @@ export default function WishForm() {
         <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.025] p-4 text-xs text-white/35"><Sparkles size={14} className="mb-2 text-white/50" />Everything is ready. On Create, your WishVerse will be saved and you'll get a separate page with Preview, Edit and Copy Link.</div>
       </FormCard>
     );
-  }, [formStage, recipientName, creatorName, gender, occasion, theme, birthdayMessage, cakeType, royalNotes, memories, existingMemories, secretLetter, currentOccasion]);
+  }, [formStage, recipientName, creatorName, gender, occasion, theme, birthdayMessage, cakeType, royalNotes, noteSuggestionIndexes, memories, existingMemories, secretLetter, currentOccasion]);
 
   if (loadingEdit) {
     return <div className="flex min-h-[500px] items-center justify-center rounded-[2rem] border border-white/10 bg-white/[.03]"><Loader2 className="animate-spin text-white/50" /></div>;
