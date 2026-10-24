@@ -122,9 +122,9 @@ const useCanvasCursor = () => {
         (1 - trailIndex / TRAIL_COUNT) * 0.18;
 
       const hue =
-        325 + Math.sin(time * 0.00045 + trailIndex * 0.16) * 8;
+      300 + Math.sin(time * 0.00045 + trailIndex * 0.16) * 40;
 
-      context.strokeStyle = `hsla(${hue}, 58%, 82%, ${alpha})`;
+      context.strokeStyle = `hsla(${hue}, 85%, 68%, ${alpha})`;
       context.lineWidth =
         1.8 * (1 - trailIndex / TRAIL_COUNT * 0.72);
       context.lineCap = "round";
