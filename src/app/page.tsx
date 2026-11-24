@@ -64,7 +64,7 @@ export default function WishVerseHomepage() {
             >
               <div className="pointer-events-none absolute inset-1/2 -z-10 h-40 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E8C7D8]/10 blur-3xl sm:h-52 sm:w-96" />
               <TextType
-                text={["Welcome to Wishverse"]}
+                text={["Welcome to WishVerse"]}
                 typingSpeed={75}
                 pauseDuration={1500}
                 deletingSpeed={50}
